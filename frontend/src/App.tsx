@@ -5,6 +5,7 @@ import AuthGuard from './components/AuthGuard';
 import Login from './pages/Login';
 import Finance from './pages/Finance';
 import Members from './pages/Members';
+import ArchivedMembers from './pages/ArchivedMembers';
 import MemberDetail from './pages/MemberDetail';
 import Package from './pages/Package';
 import Attendance from './pages/Attendance';
@@ -32,6 +33,14 @@ function App() {
               element={
                 <AuthGuard>
                   <Members />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/members/archived"
+              element={
+                <AuthGuard>
+                  <ArchivedMembers />
                 </AuthGuard>
               }
             />

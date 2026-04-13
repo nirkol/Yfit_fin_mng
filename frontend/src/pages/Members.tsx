@@ -1,28 +1,65 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useYear } from '../contexts/YearContext';
+import { memberService } from '../services/memberService';
 import { yearService } from '../services/yearService';
-import type { MemberWithBalance } from '../types';
-import { Users, Search } from 'lucide-react';
+import type { MemberWithBalance, YearData } from '../types';
+import { Users, Search, Plus, X, Eye, Archive, Trash2, MoreVertical } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
+
+interface EnhancedMember extends MemberWithBalance {
+  amountPaidThisYear: number;
+  attendanceCountThisYear: number;
+}
 
 export default function Members() {
   const { selectedYear } = useYear();
   const navigate = useNavigate();
-  const [members, setMembers] = useState<MemberWithBalance[]>([]);
+  const [members, setMembers] = useState<EnhancedMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showArchived, setShowArchived] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
+
+  // New member form
+  const [newMemberName, setNewMemberName] = useState('');
+  const [newMemberPhone, setNewMemberPhone] = useState('');
+  const [newMemberDOB, setNewMemberDOB] = useState('');
 
   useEffect(() => {
     loadMembers();
-  }, [selectedYear, showArchived]);
+  }, [selectedYear]);
 
   const loadMembers = async () => {
     try {
       setLoading(true);
-      const balances = await yearService.getYearBalances(selectedYear);
-      setMembers(balances);
+      const [balances, yearData] = await Promise.all([
+        yearService.getYearBalances(selectedYear),
+        yearService.getYearData(selectedYear)
+      ]);
+
+      // Calculate amount paid and attendance for each member
+      const enhancedMembers: EnhancedMember[] = balances.map(member => {
+        // Sum amount paid from packages
+        const amountPaid = (yearData.packages || [])
+          .filter(pkg => pkg.memberId === member.id)
+          .reduce((sum, pkg) => sum + pkg.amountPaid, 0);
+
+        // Count attendance
+        const attendanceCount = (yearData.attendance || [])
+          .filter(att => att.memberId === member.id)
+          .length;
+
+        return {
+          ...member,
+          amountPaidThisYear: amountPaid,
+          attendanceCountThisYear: attendanceCount
+        };
+      });
+
+      setMembers(enhancedMembers);
     } catch (error) {
       console.error('Failed to load members:', error);
     } finally {
@@ -30,11 +67,89 @@ export default function Members() {
     }
   };
 
+  const handleCreateMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!newMemberName.trim()) {
+      alert('שם המתאמן הוא שדה חובה');
+      return;
+    }
+
+    try {
+      setCreating(true);
+      await memberService.createMember({
+        name: newMemberName.trim(),
+        phone: newMemberPhone.trim() || undefined,
+        dateOfBirth: newMemberDOB || undefined,
+        isArchived: false
+      });
+
+      alert('מתאמן נוסף בהצלחה!');
+      setShowCreateModal(false);
+      setNewMemberName('');
+      setNewMemberPhone('');
+      setNewMemberDOB('');
+      loadMembers();
+    } catch (error) {
+      console.error('Failed to create member:', error);
+      alert('שגיאה ביצירת מתאמן');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleArchiveMember = async (memberId: string, memberName: string, isArchived: boolean) => {
+    const action = isArchived ? 'שחזור' : 'העברה לארכיון';
+    if (!confirm(`האם אתה בטוח שברצונך ל${action} את ${memberName}?`)) {
+      return;
+    }
+
+    try {
+      await memberService.updateMember(memberId, { isArchived: !isArchived });
+      alert(`${memberName} ${isArchived ? 'שוחזר' : 'הועבר לארכיון'} בהצלחה`);
+      loadMembers();
+    } catch (error) {
+      console.error('Failed to archive member:', error);
+      alert('שגיאה בביצוע הפעולה');
+    }
+  };
+
+  const handleDeleteMember = async (memberId: string, memberName: string) => {
+    if (!confirm(`⚠️ אזהרה! פעולה זו תמחק לצמיתות את ${memberName} וכל הנתונים הקשורים. האם להמשיך?`)) {
+      return;
+    }
+
+    try {
+      await memberService.deleteMember(memberId);
+      alert(`${memberName} נמחק בהצלחה`);
+      loadMembers();
+    } catch (error) {
+      console.error('Failed to delete member:', error);
+      alert('שגיאה במחיקת מתאמן');
+    }
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('he-IL', {
+      style: 'currency',
+      currency: 'ILS',
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return '-';
+    return new Date(dateStr).toLocaleDateString('he-IL');
+  };
+
   const filteredMembers = members.filter((member) => {
     const matchesSearch = member.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesArchived = showArchived || !member.isArchived;
-    return matchesSearch && matchesArchived;
+    // Only show non-archived members
+    return matchesSearch && !member.isArchived;
   });
+
+  const activeMembers = members.filter(m => !m.isArchived);
+  const archivedCount = members.filter(m => m.isArchived).length;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -80,11 +195,43 @@ export default function Members() {
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">ניהול מתאמנים</h2>
-            <p className="text-sm text-gray-500">רשימת כל המתאמנים במערכת</p>
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-6 flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">ניהול מתאמנים</h2>
+              <p className="text-sm text-gray-500">רשימת כל המתאמנים במערכת</p>
+            </div>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            >
+              <Plus className="w-5 h-5" />
+              <span className="font-medium">מתאמן חדש</span>
+            </button>
           </div>
+
+          {/* Statistics Bar */}
+          <div className="mb-6 bg-white rounded-lg shadow p-4">
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <div className="text-2xl font-bold text-gray-900">{activeMembers.length}</div>
+                <div className="text-sm text-gray-600">סה״כ מתאמנים</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-green-600">
+                  {activeMembers.filter((m) => m.status === 'active').length}
+                </div>
+                <div className="text-sm text-gray-600">פעילים</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-red-600">
+                  {activeMembers.filter((m) => m.status === 'in_debt').length}
+                </div>
+                <div className="text-sm text-gray-600">בחוב</div>
+              </div>
+            </div>
+          </div>
+
         {/* Search and Filters */}
         <div className="bg-white rounded-lg shadow p-4 mb-6">
           <div className="flex gap-4 items-center">
@@ -98,51 +245,58 @@ export default function Members() {
                 className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
               />
             </div>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={showArchived}
-                onChange={(e) => setShowArchived(e.target.checked)}
-                className="w-4 h-4"
-              />
-              <span className="text-sm text-gray-700">הצג ארכיון</span>
-            </label>
           </div>
         </div>
 
         {/* Members Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-white rounded-lg shadow overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">שם</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">טלפון</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">יתרת שיעורים</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">סטטוס</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">חוב</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">#</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">שם</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">יתרת כסף</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">יתרת שיעורים</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">שולם השנה</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">נוכחויות השנה</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">תאריך לידה</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">טלפון</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">סטטוס</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">פעולות</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {filteredMembers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={10} className="px-6 py-8 text-center text-gray-500">
                     לא נמצאו מתאמנים
                   </td>
                 </tr>
               ) : (
-                filteredMembers.map((member) => (
+                filteredMembers.map((member, index) => (
                   <tr
                     key={member.id}
-                    className="hover:bg-gray-50 cursor-pointer transition"
-                    onClick={() => navigate(`/members/${member.id}`)}
+                    className="hover:bg-gray-50 transition"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium text-gray-900">{member.name}</div>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                      {index + 1}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                      {member.phone || '-'}
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <button
+                        onClick={() => navigate(`/members/${member.id}`)}
+                        className="font-medium text-blue-600 hover:text-blue-800 hover:underline text-right"
+                      >
+                        {member.name}
+                      </button>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className={`font-semibold ${
+                        member.debtAmount > 0 ? 'text-red-600' : 'text-gray-900'
+                      }`}>
+                        {member.debtAmount > 0 ? `-${formatCurrency(member.debtAmount)}` : formatCurrency(0)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <span
                         className={`font-semibold ${
                           member.classesRemaining < 0
@@ -155,7 +309,23 @@ export default function Members() {
                         {member.classesRemaining}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm">
+                      <span className="font-semibold text-green-600">
+                        {formatCurrency(member.amountPaidThisYear)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center">
+                      <span className="font-semibold text-blue-600">
+                        {member.attendanceCountThisYear}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                      {formatDate(member.dateOfBirth)}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                      {member.phone || '-'}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <span
                         className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
                           member.status
@@ -164,14 +334,30 @@ export default function Members() {
                         {getStatusText(member.status)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {member.debtAmount > 0 ? (
-                        <span className="text-red-600 font-semibold">
-                          ₪{member.debtAmount.toFixed(0)}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
+                    <td className="px-4 py-3 whitespace-nowrap relative">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => navigate(`/members/${member.id}`)}
+                          className="p-1 text-blue-600 hover:bg-blue-50 rounded transition"
+                          title="צפייה"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleArchiveMember(member.id, member.name, member.isArchived)}
+                          className="p-1 text-orange-600 hover:bg-orange-50 rounded transition"
+                          title={member.isArchived ? 'שחזור' : 'ארכיון'}
+                        >
+                          <Archive className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteMember(member.id, member.name)}
+                          className="p-1 text-red-600 hover:bg-red-50 rounded transition"
+                          title="מחיקה"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -180,27 +366,103 @@ export default function Members() {
           </table>
         </div>
 
-        {/* Summary */}
-        <div className="mt-6 bg-white rounded-lg shadow p-4">
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <div className="text-2xl font-bold text-gray-900">{filteredMembers.length}</div>
-              <div className="text-sm text-gray-600">סה״כ מתאמנים</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-green-600">
-                {filteredMembers.filter((m) => m.status === 'active').length}
+        {/* Archived Members Button */}
+        {archivedCount > 0 && (
+          <div className="mt-6 flex justify-center">
+            <button
+              onClick={() => navigate('/members/archived')}
+              className="flex items-center gap-2 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition"
+            >
+              <Archive className="w-5 h-5" />
+              <span className="font-medium">מתאמנים בארכיון ({archivedCount})</span>
+            </button>
+          </div>
+        )}
+
+        {/* Create Member Modal */}
+        {showCreateModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-gray-900">מתאמן חדש</h3>
+                <button
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setNewMemberName('');
+                    setNewMemberPhone('');
+                    setNewMemberDOB('');
+                  }}
+                  className="p-1 hover:bg-gray-100 rounded-lg transition"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-              <div className="text-sm text-gray-600">פעילים</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-red-600">
-                {filteredMembers.filter((m) => m.status === 'in_debt').length}
-              </div>
-              <div className="text-sm text-gray-600">בחוב</div>
+
+              <form onSubmit={handleCreateMember} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    שם מלא *
+                  </label>
+                  <input
+                    type="text"
+                    value={newMemberName}
+                    onChange={(e) => setNewMemberName(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    required
+                    placeholder="הזן שם מלא"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    טלפון
+                  </label>
+                  <input
+                    type="tel"
+                    value={newMemberPhone}
+                    onChange={(e) => setNewMemberPhone(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    placeholder="05X-XXXXXXX"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    תאריך לידה
+                  </label>
+                  <input
+                    type="date"
+                    value={newMemberDOB}
+                    onChange={(e) => setNewMemberDOB(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="submit"
+                    disabled={creating}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition disabled:opacity-50"
+                  >
+                    {creating ? 'יוצר...' : 'צור מתאמן'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCreateModal(false);
+                      setNewMemberName('');
+                      setNewMemberPhone('');
+                      setNewMemberDOB('');
+                    }}
+                    className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                  >
+                    ביטול
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
-        </div>
+        )}
         </div>
       </main>
     </div>

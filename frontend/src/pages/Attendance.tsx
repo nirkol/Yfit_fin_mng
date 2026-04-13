@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useYear } from '../contexts/YearContext';
 import { yearService } from '../services/yearService';
 import type { MemberWithBalance } from '../types';
-import { Check, Users, AlertTriangle } from 'lucide-react';
+import { Check, Users, AlertTriangle, PartyPopper, Cake } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 
 export default function Attendance() {
@@ -94,6 +94,51 @@ export default function Attendance() {
     !m.isArchived && m.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Calculate upcoming birthdays
+  const getUpcomingBirthdays = () => {
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentDay = today.getDate();
+
+    const membersWithBirthdays = members
+      .filter(m => !m.isArchived && m.dateOfBirth)
+      .map(m => {
+        const birthDate = new Date(m.dateOfBirth!);
+        const birthMonth = birthDate.getMonth();
+        const birthDay = birthDate.getDate();
+
+        // Calculate this year's birthday
+        const thisYearBirthday = new Date(today.getFullYear(), birthMonth, birthDay);
+        thisYearBirthday.setHours(0, 0, 0, 0);
+        const todayNormalized = new Date(today);
+        todayNormalized.setHours(0, 0, 0, 0);
+
+        // If birthday already passed this year, use next year
+        let nextBirthday = thisYearBirthday;
+        if (thisYearBirthday < todayNormalized) {
+          nextBirthday = new Date(today.getFullYear() + 1, birthMonth, birthDay);
+        }
+
+        const daysUntil = Math.floor((nextBirthday.getTime() - todayNormalized.getTime()) / (1000 * 60 * 60 * 24));
+
+        return {
+          member: m,
+          daysUntil,
+          date: nextBirthday,
+          birthMonth,
+          birthDay,
+          isToday: daysUntil === 0,
+          isTomorrow: daysUntil === 1
+        };
+      })
+      .sort((a, b) => a.daysUntil - b.daysUntil)
+      .slice(0, 5);
+
+    return membersWithBirthdays;
+  };
+
+  const upcomingBirthdays = getUpcomingBirthdays();
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -173,6 +218,51 @@ export default function Attendance() {
                 </button>
               </form>
             </div>
+
+            {/* Upcoming Birthdays Widget */}
+            {upcomingBirthdays.length > 0 && (
+              <div className="bg-white rounded-lg shadow p-6 mt-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <Cake className="w-5 h-5 text-pink-500" />
+                  ימי הולדת קרובים
+                </h3>
+                <div className="space-y-3">
+                  {upcomingBirthdays.map(({ member, daysUntil, date, isToday, isTomorrow }) => (
+                    <div
+                      key={member.id}
+                      className={`p-3 rounded-lg border-2 transition ${
+                        isToday || isTomorrow
+                          ? 'bg-green-50 border-green-300'
+                          : 'bg-gray-50 border-gray-200'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            {(isToday || isTomorrow) && (
+                              <PartyPopper className="w-4 h-4 text-green-600" />
+                            )}
+                            <span className="font-medium text-gray-900">{member.name}</span>
+                          </div>
+                          <div className="text-sm text-gray-600 mt-1">
+                            {isToday ? (
+                              <span className="text-green-700 font-semibold">🎉 יום הולדת היום!</span>
+                            ) : isTomorrow ? (
+                              <span className="text-green-600 font-semibold">🎈 יום הולדת מחר!</span>
+                            ) : (
+                              <span>בעוד {daysUntil} ימים</span>
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-0.5">
+                            {date.toLocaleDateString('he-IL', { day: 'numeric', month: 'long' })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Right Side - Members List */}

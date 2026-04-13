@@ -7,5 +7,14 @@
     "phone": "0501234567",
     "dateOfBirth": null,
     "isArchived": false
+  },
+  {
+    "id": "1776113864884",
+    "memberId": 2,
+    "createdAt": "2026-04-13T23:57:44.885136",
+    "name": "nir kol",
+    "phone": "22222",
+    "dateOfBirth": "2019-06-13",
+    "isArchived": false
   }
 ]
