@@ -1,0 +1,18 @@
+{
+  "yearKey": "2026",
+  "openingBalances": [],
+  "packages": [],
+  "attendance": [
+    {
+      "id": "1776113522300-1776111003862",
+      "yearKey": "2026",
+      "memberId": "1776111003862",
+      "memberName": "דני כהן",
+      "date": "2026-04-13T00:00:00.000Z",
+      "time": "18:00",
+      "dayOfWeek": "יום שני",
+      "classType": "regular"
+    }
+  ],
+  "refunds": []
+}
