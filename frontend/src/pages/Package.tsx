@@ -100,7 +100,7 @@ export default function PackageSales() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex" dir="rtl">
+    <div className="min-h-screen flex" dir="rtl" style={{ background: 'var(--sidebar-bg)' }}>
       <Sidebar />
 
       {/* Main Content */}
@@ -143,13 +143,13 @@ export default function PackageSales() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 סוג כרטיסייה *
               </label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <div className="flex flex-wrap justify-center gap-3">
                 {settings && Object.entries(settings).filter(([key]) => key.startsWith('package')).map(([key, pkg]) => (
                   <button
                     key={key}
                     type="button"
                     onClick={() => handlePackageTypeChange(key as PackageType)}
-                    className={`p-4 border-2 rounded-lg transition ${
+                    className={`flex-1 min-w-[140px] p-4 border-2 rounded-lg transition ${
                       packageType === key
                         ? 'border-blue-600 bg-blue-50'
                         : 'border-gray-300 hover:border-gray-400'
@@ -163,7 +163,7 @@ export default function PackageSales() {
                 <button
                   type="button"
                   onClick={() => handlePackageTypeChange('adhoc')}
-                  className={`p-4 border-2 rounded-lg transition ${
+                  className={`flex-1 min-w-[140px] p-4 border-2 rounded-lg transition ${
                     packageType === 'adhoc'
                       ? 'border-blue-600 bg-blue-50'
                       : 'border-gray-300 hover:border-gray-400'

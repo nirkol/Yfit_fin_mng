@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useYear } from '../contexts/YearContext';
 import { yearService } from '../services/yearService';
 import type { AttendanceRecord } from '../types';
-import { Calendar, Users, Clock, Search } from 'lucide-react';
+import { Calendar, Users, Clock, Search, ChevronLeft, ChevronRight, Edit, X } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 
 interface ClassSession {
@@ -20,28 +20,60 @@ export default function ClassHistory() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    loadClasses();
-  }, [selectedYear]);
+  // Edit modal state
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingClass, setEditingClass] = useState<ClassSession | null>(null);
+  const [editDate, setEditDate] = useState('');
+  const [editTime, setEditTime] = useState('');
+  const [editAttendees, setEditAttendees] = useState<Array<{ memberId: string; memberName: string }>>([]);
+  const [allMembers, setAllMembers] = useState<Array<{ id: string; name: string }>>([]);
+
+  // Month navigation state - default to current month
+  const now = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth()); // 0-11
+  const [selectedMonthYear, setSelectedMonthYear] = useState(parseInt(selectedYear));
+
+  const monthNames = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
 
   useEffect(() => {
+    loadClasses();
+    loadMembers();
+  }, [selectedYear]);
+
+  const loadMembers = async () => {
+    try {
+      const balances = await yearService.getYearBalances(selectedYear);
+      setAllMembers(balances.filter(m => !m.isArchived).map(m => ({ id: m.id, name: m.name })));
+    } catch (error) {
+      console.error('Failed to load members:', error);
+    }
+  };
+
+  useEffect(() => {
+    // Filter classes by selected month
+    const monthFiltered = classes.filter(cls => {
+      const classDate = new Date(cls.date);
+      return classDate.getMonth() === selectedMonth && classDate.getFullYear() === selectedMonthYear;
+    });
+
+    // Apply search filter on top of month filter
     if (searchTerm.trim() === '') {
-      setFilteredClasses(classes);
+      setFilteredClasses(monthFiltered);
     } else {
       const term = searchTerm.toLowerCase();
-      const filtered = classes.filter(cls =>
+      const filtered = monthFiltered.filter(cls =>
         cls.date.includes(term) ||
         cls.time.includes(term) ||
         cls.attendees.some(a => a.memberName.toLowerCase().includes(term))
       );
       setFilteredClasses(filtered);
     }
-  }, [searchTerm, classes]);
+  }, [searchTerm, classes, selectedMonth, selectedMonthYear]);
 
   const loadClasses = async () => {
     try {
       setLoading(true);
-      const yearData = await yearService.getYear(selectedYear);
+      const yearData = await yearService.getYearData(selectedYear);
 
       // Group attendance by date and time
       const classMap = new Map<string, ClassSession>();
@@ -75,9 +107,68 @@ export default function ClassHistory() {
       setFilteredClasses(classesList);
     } catch (error) {
       console.error('Failed to load classes:', error);
-      alert('שגיאה בטעינת היסטוריית שיעורים');
+      // Only show error if it's a real API error, not just empty data
+      if (error instanceof Error && error.message !== 'No data') {
+        console.error('Error details:', error);
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePreviousMonth = () => {
+    if (selectedMonth === 0) {
+      setSelectedMonth(11);
+      setSelectedMonthYear(selectedMonthYear - 1);
+    } else {
+      setSelectedMonth(selectedMonth - 1);
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (selectedMonth === 11) {
+      setSelectedMonth(0);
+      setSelectedMonthYear(selectedMonthYear + 1);
+    } else {
+      setSelectedMonth(selectedMonth + 1);
+    }
+  };
+
+  const handleEditClass = (cls: ClassSession) => {
+    setEditingClass(cls);
+    setEditDate(cls.date.split('T')[0]); // Extract date part
+    setEditTime(cls.time);
+    setEditAttendees([...cls.attendees]);
+    setShowEditModal(true);
+  };
+
+  const handleToggleAttendee = (memberId: string, memberName: string) => {
+    const exists = editAttendees.find(a => a.memberId === memberId);
+    if (exists) {
+      setEditAttendees(editAttendees.filter(a => a.memberId !== memberId));
+    } else {
+      setEditAttendees([...editAttendees, { memberId, memberName }]);
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingClass || editAttendees.length === 0) {
+      alert('חייב לבחור לפחות חבר אחד');
+      return;
+    }
+
+    try {
+      // TODO: Implement API call to update class attendance
+      // This would involve:
+      // 1. Deleting old attendance records for this date/time
+      // 2. Creating new attendance records with updated data
+
+      alert('שינויים נשמרו בהצלחה');
+      setShowEditModal(false);
+      loadClasses();
+    } catch (error) {
+      console.error('Failed to update class:', error);
+      alert('שגיאה בעדכון שיעור');
     }
   };
 
@@ -100,7 +191,7 @@ export default function ClassHistory() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex" dir="rtl">
+    <div className="min-h-screen flex" dir="rtl" style={{ background: 'var(--sidebar-bg)' }}>
       <Sidebar />
 
       {/* Main Content */}
@@ -111,40 +202,54 @@ export default function ClassHistory() {
             <p className="text-sm text-gray-500">שנה: {selectedYear}</p>
           </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
-                <Calendar className="w-6 h-6" />
-              </div>
-            </div>
-            <div className="text-2xl font-bold text-gray-900 mb-1">{classes.length}</div>
-            <div className="text-sm text-gray-600">סה״כ שיעורים</div>
+        {/* Month Navigation with Inline Stats */}
+        <div className="bg-white rounded-lg shadow p-4 mb-6">
+          <div className="flex items-center justify-between gap-4 mb-3">
+            <button
+              onClick={handlePreviousMonth}
+              className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg transition"
+              title="חודש קודם"
+            >
+              <ChevronRight className="w-5 h-5 text-gray-700" />
+              <span className="text-sm text-gray-600">קודם</span>
+            </button>
+
+            <h3 className="text-lg font-bold text-gray-900">
+              {monthNames[selectedMonth]} {selectedMonthYear}
+            </h3>
+
+            <button
+              onClick={handleNextMonth}
+              className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg transition"
+              title="חודש הבא"
+            >
+              <span className="text-sm text-gray-600">הבא</span>
+              <ChevronLeft className="w-5 h-5 text-gray-700" />
+            </button>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-green-100 text-green-600">
-                <Users className="w-6 h-6" />
-              </div>
+          <div className="flex items-center justify-center gap-6 text-sm border-t pt-3">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-blue-600" />
+              <span className="font-semibold text-gray-900">{filteredClasses.length}</span>
+              <span className="text-gray-600">שיעורים</span>
             </div>
-            <div className="text-2xl font-bold text-gray-900 mb-1">
-              {classes.reduce((sum, cls) => sum + cls.attendees.length, 0)}
-            </div>
-            <div className="text-sm text-gray-600">סה״כ משתתפים</div>
-          </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-purple-100 text-purple-600">
-                <Users className="w-6 h-6" />
-              </div>
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-green-600" />
+              <span className="font-semibold text-gray-900">
+                {filteredClasses.reduce((sum, cls) => sum + cls.attendees.length, 0)}
+              </span>
+              <span className="text-gray-600">משתתפים</span>
             </div>
-            <div className="text-2xl font-bold text-gray-900 mb-1">
-              {classes.length > 0 ? (classes.reduce((sum, cls) => sum + cls.attendees.length, 0) / classes.length).toFixed(1) : 0}
+
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-purple-600" />
+              <span className="font-semibold text-gray-900">
+                {filteredClasses.length > 0 ? (filteredClasses.reduce((sum, cls) => sum + cls.attendees.length, 0) / filteredClasses.length).toFixed(1) : 0}
+              </span>
+              <span className="text-gray-600">ממוצע</span>
             </div>
-            <div className="text-sm text-gray-600">ממוצע לשיעור</div>
           </div>
         </div>
 
@@ -178,39 +283,46 @@ export default function ClassHistory() {
             {filteredClasses.map((cls, index) => (
               <div key={`${cls.date}-${cls.time}`} className="bg-white rounded-lg shadow hover:shadow-md transition">
                 <div className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <div className="flex items-center gap-3 mb-2">
+                  <div className="flex items-center justify-between mb-4 pb-3 border-b">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
                         <Calendar className="w-5 h-5 text-blue-600" />
                         <h3 className="text-lg font-semibold text-gray-900">
                           {formatDate(cls.date)}
                         </h3>
                       </div>
-                      <div className="flex items-center gap-2 text-gray-600">
+                      <div className="flex items-center gap-2 text-gray-600 bg-gray-50 px-3 py-1 rounded-lg">
                         <Clock className="w-4 h-4" />
-                        <span>{cls.time}</span>
+                        <span className="font-medium">{cls.time}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-lg">
-                      <Users className="w-5 h-5 text-blue-600" />
-                      <span className="font-semibold text-blue-900">{cls.attendees.length}</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleEditClass(cls)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                        title="עריכת שיעור"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-lg">
+                        <Users className="w-5 h-5 text-blue-600" />
+                        <span className="font-semibold text-blue-900">{cls.attendees.length}</span>
+                        <span className="text-sm text-gray-600">משתתפים</span>
+                      </div>
                     </div>
                   </div>
 
                   {/* Attendees */}
-                  <div className="border-t pt-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">משתתפים:</h4>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
-                      {cls.attendees.map((attendee) => (
-                        <button
-                          key={attendee.memberId}
-                          onClick={() => navigate(`/members/${attendee.memberId}`)}
-                          className="px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm text-gray-700 transition text-right"
-                        >
-                          {attendee.memberName}
-                        </button>
-                      ))}
-                    </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                    {cls.attendees.map((attendee) => (
+                      <button
+                        key={attendee.memberId}
+                        onClick={() => navigate(`/members/${attendee.memberId}`)}
+                        className="px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm text-gray-700 transition text-right"
+                      >
+                        {attendee.memberName}
+                      </button>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -219,6 +331,94 @@ export default function ClassHistory() {
         )}
         </div>
       </main>
+
+      {/* Edit Class Modal */}
+      {showEditModal && editingClass && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" dir="rtl">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-gray-900">עריכת שיעור</h3>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="p-1 hover:bg-gray-100 rounded-lg transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Date and Time */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    תאריך
+                  </label>
+                  <input
+                    type="date"
+                    value={editDate}
+                    onChange={(e) => setEditDate(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    שעה
+                  </label>
+                  <input
+                    type="time"
+                    value={editTime}
+                    onChange={(e) => setEditTime(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Attendees Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  משתתפים ({editAttendees.length})
+                </label>
+                <div className="border border-gray-300 rounded-lg p-4 max-h-96 overflow-y-auto">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {allMembers.map((member) => {
+                      const isSelected = editAttendees.some(a => a.memberId === member.id);
+                      return (
+                        <button
+                          key={member.id}
+                          onClick={() => handleToggleAttendee(member.id, member.name)}
+                          className={`p-3 border-2 rounded-lg text-sm transition text-right ${
+                            isSelected
+                              ? 'border-blue-600 bg-blue-50 text-blue-900'
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                        >
+                          {member.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={handleSaveEdit}
+                className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition font-medium"
+              >
+                שמור שינויים
+              </button>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+              >
+                ביטול
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

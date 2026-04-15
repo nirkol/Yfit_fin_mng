@@ -4,7 +4,7 @@ import { useYear } from '../contexts/YearContext';
 import { yearService } from '../services/yearService';
 import type { PackagePurchase, RefundTransaction, MemberWithBalance } from '../types';
 import { DollarSign, Users, TrendingUp, Package, AlertCircle, Calendar } from 'lucide-react';
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart, ReferenceLine } from 'recharts';
 import Sidebar from '../components/Sidebar';
 
 interface MonthlyData {
@@ -49,6 +49,9 @@ export default function Finance() {
     }
   };
 
+  // Tax cap threshold for self-employed (osek patur)
+  const TAX_CAP = 102292; // 2024 Israeli tax cap for עוסק פטור
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('he-IL', {
       style: 'currency',
@@ -64,7 +67,17 @@ export default function Finance() {
   const packagesSold = packages.length;
   const membersInDebt = members.filter(m => m.classesRemaining < 0);
   const totalDebt = membersInDebt.reduce((sum, m) => sum + m.debtAmount, 0);
-  const avgMonthlyRevenue = totalRevenue / 12;
+
+  // Calculate year-to-date months (current month in the selected year)
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth(); // 0-indexed (0 = January, 3 = April)
+
+  // If viewing current year, use YTD; otherwise use full year
+  const isCurrentYear = parseInt(selectedYear) === currentYear;
+  const monthsToDate = isCurrentYear ? currentMonth + 1 : 12; // +1 because currentMonth is 0-indexed
+
+  const avgMonthlyRevenue = totalRevenue / monthsToDate;
 
   // Monthly revenue data
   const monthlyData: MonthlyData[] = [];
@@ -132,7 +145,7 @@ export default function Finance() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex" dir="rtl">
+    <div className="min-h-screen flex" dir="rtl" style={{ background: 'var(--sidebar-bg)' }}>
       <Sidebar />
 
       <main className="flex-1 overflow-y-auto">
@@ -176,9 +189,8 @@ export default function Finance() {
             />
           </div>
 
-          {/* Charts Row 1 */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {/* Monthly Revenue */}
+          {/* Monthly Revenue Chart - Full Width */}
+          <div className="mb-6">
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">הכנסות חודשיות</h3>
               <ResponsiveContainer width="100%" height={300}>
@@ -192,8 +204,10 @@ export default function Finance() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
+          </div>
 
-            {/* Cumulative Revenue */}
+          {/* Cumulative Revenue Chart - Full Width */}
+          <div className="mb-6">
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">הכנסות מצטברות</h3>
               <ResponsiveContainer width="100%" height={300}>
@@ -203,6 +217,21 @@ export default function Finance() {
                   <YAxis />
                   <Tooltip formatter={(value) => formatCurrency(value as number)} />
                   <Legend />
+                  <ReferenceLine
+                    y={TAX_CAP}
+                    stroke="#ef4444"
+                    strokeWidth={3}
+                    strokeDasharray="8 4"
+                    label={{
+                      value: `תקרת מס: ${formatCurrency(TAX_CAP)}`,
+                      position: 'top',
+                      fill: '#ef4444',
+                      fontWeight: 'bold',
+                      fontSize: 14,
+                      offset: 10
+                    }}
+                    isFront={true}
+                  />
                   <Area type="monotone" dataKey="cumulative" stroke="#10b981" fill="#10b981" fillOpacity={0.6} name="מצטבר" />
                 </AreaChart>
               </ResponsiveContainer>
@@ -277,24 +306,60 @@ export default function Finance() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">התפלגות אמצעי תשלום</h3>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={350}>
                 <PieChart>
                   <Pie
                     data={paymentMethodsData}
                     cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ method, count }) => `${method}: ${count}`}
-                    outerRadius={100}
+                    cy="45%"
+                    labelLine={true}
+                    label={({ cx, cy, midAngle, outerRadius, method, percent }) => {
+                      const RADIAN = Math.PI / 180;
+                      const radius = outerRadius + 25;
+                      const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                      const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                      return (
+                        <text
+                          x={x}
+                          y={y}
+                          fill="#374151"
+                          textAnchor={x > cx ? 'start' : 'end'}
+                          dominantBaseline="central"
+                          style={{ fontSize: '13px', fontWeight: '500' }}
+                        >
+                          {`${method} (${(percent * 100).toFixed(0)}%)`}
+                        </text>
+                      );
+                    }}
+                    outerRadius={90}
+                    innerRadius={55}
                     fill="#8884d8"
                     dataKey="amount"
+                    nameKey="method"
+                    paddingAngle={2}
                   >
                     {paymentMethodsData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                  <Legend />
+                  <Tooltip
+                    formatter={(value: any) => formatCurrency(value as number)}
+                    contentStyle={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      border: '1px solid #ccc',
+                      borderRadius: '8px',
+                      padding: '10px'
+                    }}
+                  />
+                  <Legend
+                    verticalAlign="bottom"
+                    height={36}
+                    iconType="circle"
+                    formatter={(value: string, entry: any) => {
+                      const data = entry.payload;
+                      return `${value}: ${formatCurrency(data.amount)}`;
+                    }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>

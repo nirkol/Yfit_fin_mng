@@ -51,7 +51,17 @@ export default function AttendanceDashboard() {
 
   const totalAttendance = attendance.length;
   const avgAttendancePerClass = totalClasses > 0 ? (totalAttendance / totalClasses) : 0;
-  const avgAttendancePerMonth = totalAttendance / 12;
+
+  // Calculate year-to-date months (current month in the selected year)
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth(); // 0-indexed (0 = January, 3 = April)
+
+  // If viewing current year, use YTD; otherwise use full year
+  const isCurrentYear = parseInt(selectedYear) === currentYear;
+  const monthsToDate = isCurrentYear ? currentMonth + 1 : 12; // +1 because currentMonth is 0-indexed
+
+  const avgAttendancePerMonth = totalAttendance / monthsToDate;
 
   // Calculate unique active members per month
   const monthlyUniqueMembers: { [key: number]: Set<string> } = {};
@@ -64,7 +74,13 @@ export default function AttendanceDashboard() {
     monthlyUniqueMembers[month].add(record.memberId);
   });
 
-  const avgUniqueActivePerMonth = Object.values(monthlyUniqueMembers).reduce((sum, set) => sum + set.size, 0) / 12;
+  // Calculate average unique active members per month (YTD)
+  const monthsWithData = Object.entries(monthlyUniqueMembers)
+    .filter(([month, set]) => parseInt(month) < monthsToDate)
+    .map(([_, set]) => set.size);
+  const avgUniqueActivePerMonth = monthsWithData.length > 0
+    ? monthsWithData.reduce((sum, size) => sum + size, 0) / monthsToDate
+    : 0;
 
   // Monthly attendance data
   const monthNames = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
@@ -94,7 +110,12 @@ export default function AttendanceDashboard() {
     memberAttendanceMap[record.memberId].attendanceCount++;
   });
 
-  const rankedMembers = Object.values(memberAttendanceMap).sort((a, b) => b.attendanceCount - a.attendanceCount);
+  const rankedMembers = Object.values(memberAttendanceMap)
+    .map(member => ({
+      ...member,
+      avgPerMonth: member.attendanceCount / monthsToDate
+    }))
+    .sort((a, b) => b.attendanceCount - a.attendanceCount);
 
   if (loading) {
     return (
@@ -105,7 +126,7 @@ export default function AttendanceDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex" dir="rtl">
+    <div className="min-h-screen flex" dir="rtl" style={{ background: 'var(--sidebar-bg)' }}>
       <Sidebar />
 
       <main className="flex-1 overflow-y-auto">
@@ -155,9 +176,8 @@ export default function AttendanceDashboard() {
             />
           </div>
 
-          {/* Charts Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {/* Monthly Attendance */}
+          {/* Monthly Attendance Chart - Full Width */}
+          <div className="mb-6">
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">נוכחות חודשית</h3>
               <ResponsiveContainer width="100%" height={300}>
@@ -171,8 +191,10 @@ export default function AttendanceDashboard() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
+          </div>
 
-            {/* Unique Active Members per Month */}
+          {/* Unique Active Members Chart - Full Width */}
+          <div className="mb-6">
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">מתאמנים ייחודיים לחודש</h3>
               <ResponsiveContainer width="100%" height={300}>
@@ -204,13 +226,11 @@ export default function AttendanceDashboard() {
                       <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">דירוג</th>
                       <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">שם</th>
                       <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">נוכחויות</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">אחוז</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">גרף</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">ממוצע לחודש (YTD)</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
                     {rankedMembers.map((member, index) => {
-                      const percentage = totalClasses > 0 ? (member.attendanceCount / totalClasses * 100) : 0;
                       const isTop3 = index < 3;
 
                       return (
@@ -238,15 +258,7 @@ export default function AttendanceDashboard() {
                             <span className="font-semibold text-blue-600">{member.attendanceCount}</span>
                           </td>
                           <td className="px-4 py-3 text-sm">
-                            <span className="font-semibold">{percentage.toFixed(1)}%</span>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div
-                                className="bg-blue-600 h-2 rounded-full transition-all"
-                                style={{ width: `${Math.min(percentage, 100)}%` }}
-                              ></div>
-                            </div>
+                            <span className="font-semibold text-purple-600">{member.avgPerMonth.toFixed(1)}</span>
                           </td>
                         </tr>
                       );

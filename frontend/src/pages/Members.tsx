@@ -22,6 +22,7 @@ export default function Members() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [creating, setCreating] = useState(false);
   const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
+  const [archivedCount, setArchivedCount] = useState(0);
 
   // New member form
   const [newMemberName, setNewMemberName] = useState('');
@@ -35,10 +36,14 @@ export default function Members() {
   const loadMembers = async () => {
     try {
       setLoading(true);
-      const [balances, yearData] = await Promise.all([
+      const [balances, yearData, allMembers] = await Promise.all([
         yearService.getYearBalances(selectedYear),
-        yearService.getYearData(selectedYear)
+        yearService.getYearData(selectedYear),
+        memberService.getMembers() // Fetch all members to get archived count
       ]);
+
+      console.log('All members fetched:', allMembers);
+      console.log('Archived members:', allMembers.filter(m => m.isArchived));
 
       // Calculate amount paid and attendance for each member
       const enhancedMembers: EnhancedMember[] = balances.map(member => {
@@ -60,8 +65,15 @@ export default function Members() {
       });
 
       setMembers(enhancedMembers);
+
+      // Calculate archived count from all members (not just balances)
+      const archived = allMembers.filter(m => m.isArchived).length;
+      console.log('Setting archived count to:', archived);
+      setArchivedCount(archived);
     } catch (error) {
       console.error('Failed to load members:', error);
+      // Set archived count to 0 on error
+      setArchivedCount(0);
     } finally {
       setLoading(false);
     }
@@ -115,6 +127,20 @@ export default function Members() {
   };
 
   const handleDeleteMember = async (memberId: string, memberName: string) => {
+    // Find the member to check their balance
+    const member = members.find(m => m.id === memberId);
+
+    if (!member) {
+      alert('שגיאה: מתאמן לא נמצא');
+      return;
+    }
+
+    // Check if member has a balance (positive or negative)
+    if (member.classesRemaining !== 0) {
+      alert(`❌ לא ניתן למחוק את ${memberName}.\n\nיתרת שיעורים: ${member.classesRemaining}\n\nניתן למחוק מתאמן רק כאשר יתרת השיעורים שלו היא 0.`);
+      return;
+    }
+
     if (!confirm(`⚠️ אזהרה! פעולה זו תמחק לצמיתות את ${memberName} וכל הנתונים הקשורים. האם להמשיך?`)) {
       return;
     }
@@ -149,7 +175,6 @@ export default function Members() {
   });
 
   const activeMembers = members.filter(m => !m.isArchived);
-  const archivedCount = members.filter(m => m.isArchived).length;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -190,7 +215,7 @@ export default function Members() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex" dir="rtl">
+    <div className="min-h-screen flex" dir="rtl" style={{ background: 'var(--sidebar-bg)' }}>
       <Sidebar />
 
       {/* Main Content */}
@@ -201,34 +226,27 @@ export default function Members() {
               <h2 className="text-2xl font-bold text-gray-900">ניהול מתאמנים</h2>
               <p className="text-sm text-gray-500">רשימת כל המתאמנים במערכת</p>
             </div>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-            >
-              <Plus className="w-5 h-5" />
-              <span className="font-medium">מתאמן חדש</span>
-            </button>
-          </div>
-
-          {/* Statistics Bar */}
-          <div className="mb-6 bg-white rounded-lg shadow p-4">
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div>
-                <div className="text-2xl font-bold text-gray-900">{activeMembers.length}</div>
-                <div className="text-sm text-gray-600">סה״כ מתאמנים</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-green-600">
-                  {activeMembers.filter((m) => m.status === 'active').length}
-                </div>
-                <div className="text-sm text-gray-600">פעילים</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-red-600">
-                  {activeMembers.filter((m) => m.status === 'in_debt').length}
-                </div>
-                <div className="text-sm text-gray-600">בחוב</div>
-              </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => navigate('/archived-members')}
+                disabled={archivedCount === 0}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+                  archivedCount === 0
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-orange-600 text-white hover:bg-orange-700'
+                }`}
+                title={archivedCount === 0 ? 'אין מתאמנים בארכיון' : 'צפה במתאמנים בארכיון'}
+              >
+                <Archive className="w-5 h-5" />
+                <span className="font-medium">ארכיון ({archivedCount})</span>
+              </button>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+              >
+                <Plus className="w-5 h-5" />
+                <span className="font-medium">מתאמן חדש</span>
+              </button>
             </div>
           </div>
 
@@ -253,16 +271,16 @@ export default function Members() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">#</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">שם</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">יתרת כסף</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">יתרת שיעורים</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">שולם השנה</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">נוכחויות השנה</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">תאריך לידה</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">טלפון</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">סטטוס</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">פעולות</th>
+                <th className="px-4 py-3 text-center text-sm font-bold text-gray-700 uppercase">#</th>
+                <th className="px-4 py-3 text-center text-sm font-bold text-gray-700 uppercase">שם</th>
+                <th className="px-4 py-3 text-center text-sm font-bold text-gray-700 uppercase">יתרת כסף</th>
+                <th className="px-4 py-3 text-center text-sm font-bold text-gray-700 uppercase">יתרת שיעורים</th>
+                <th className="px-4 py-3 text-center text-sm font-bold text-gray-700 uppercase">שולם השנה</th>
+                <th className="px-4 py-3 text-center text-sm font-bold text-gray-700 uppercase">נוכחויות השנה</th>
+                <th className="px-4 py-3 text-center text-sm font-bold text-gray-700 uppercase">תאריך לידה</th>
+                <th className="px-4 py-3 text-center text-sm font-bold text-gray-700 uppercase">טלפון</th>
+                <th className="px-4 py-3 text-center text-sm font-bold text-gray-700 uppercase">סטטוס</th>
+                <th className="px-4 py-3 text-center text-sm font-bold text-gray-700 uppercase">פעולות</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -278,25 +296,25 @@ export default function Members() {
                     key={member.id}
                     className="hover:bg-gray-50 transition"
                   >
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-center">
                       {index + 1}
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
                       <button
                         onClick={() => navigate(`/members/${member.id}`)}
-                        className="font-medium text-blue-600 hover:text-blue-800 hover:underline text-right"
+                        className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
                       >
                         {member.name}
                       </button>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
                       <span className={`font-semibold ${
                         member.debtAmount > 0 ? 'text-red-600' : 'text-gray-900'
                       }`}>
                         {member.debtAmount > 0 ? `-${formatCurrency(member.debtAmount)}` : formatCurrency(0)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
                       <span
                         className={`font-semibold ${
                           member.classesRemaining < 0
@@ -309,7 +327,7 @@ export default function Members() {
                         {member.classesRemaining}
                       </span>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center">
                       <span className="font-semibold text-green-600">
                         {formatCurrency(member.amountPaidThisYear)}
                       </span>
@@ -319,13 +337,13 @@ export default function Members() {
                         {member.attendanceCountThisYear}
                       </span>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-center">
                       {formatDate(member.dateOfBirth)}
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-center">
                       {member.phone || '-'}
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
                       <span
                         className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
                           member.status
@@ -334,8 +352,8 @@ export default function Members() {
                         {getStatusText(member.status)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap relative">
-                      <div className="flex items-center gap-2">
+                    <td className="px-4 py-3 whitespace-nowrap relative text-center">
+                      <div className="flex items-center gap-2 justify-center">
                         <button
                           onClick={() => navigate(`/members/${member.id}`)}
                           className="p-1 text-blue-600 hover:bg-blue-50 rounded transition"

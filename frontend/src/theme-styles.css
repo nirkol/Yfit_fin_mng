@@ -1,0 +1,315 @@
+/* Theme-aware styles for YFit Fin Management */
+/* These styles use CSS variables set by ThemeContext */
+
+* {
+  font-family: var(--font-body);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+/* Card Styles */
+.theme-card {
+  background: var(--color-card-bg);
+  border: var(--card-border-width) solid var(--card-border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow);
+  transition: all var(--transition-normal);
+}
+
+.theme-card:hover {
+  box-shadow: var(--card-hover-shadow);
+  transform: var(--card-hover-transform);
+}
+
+/* Button Styles */
+.theme-btn-primary {
+  background: var(--btn-primary-bg);
+  color: white;
+  border-radius: var(--btn-radius);
+  transition: all var(--transition-normal);
+}
+
+.theme-btn-primary:hover {
+  background: var(--btn-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.theme-btn-secondary {
+  background: var(--btn-secondary-bg);
+  color: var(--color-text-primary);
+  border-radius: var(--btn-radius);
+  transition: all var(--transition-normal);
+}
+
+.theme-btn-secondary:hover {
+  background: var(--btn-secondary-hover);
+}
+
+/* Sidebar Styles */
+.theme-sidebar {
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  transition: all var(--transition-normal);
+}
+
+.theme-sidebar-item {
+  color: var(--sidebar-text);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.theme-sidebar-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.theme-sidebar-item.active {
+  background: var(--sidebar-active-bg);
+  color: var(--sidebar-active-text);
+  border-right: var(--sidebar-active-border);
+  font-weight: 600;
+}
+
+/* Stat Card Styles */
+.theme-stat-card {
+  background: var(--color-card-bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow);
+  padding: 1.5rem;
+  transition: all var(--transition-normal);
+}
+
+.theme-stat-card:hover {
+  box-shadow: var(--card-hover-shadow);
+  transform: var(--card-hover-transform);
+}
+
+/* Input Styles */
+.theme-input {
+  background: var(--color-card-bg);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  transition: all var(--transition-fast);
+}
+
+.theme-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary), 0.1);
+}
+
+/* Badge Styles */
+.theme-badge {
+  border-radius: var(--radius-full);
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all var(--transition-fast);
+}
+
+.theme-badge-primary {
+  background: var(--color-primary);
+  color: white;
+}
+
+.theme-badge-success {
+  background: var(--color-success);
+  color: white;
+}
+
+.theme-badge-warning {
+  background: var(--color-warning);
+  color: white;
+}
+
+.theme-badge-danger {
+  background: var(--color-danger);
+  color: white;
+}
+
+/* Table Styles */
+.theme-table {
+  background: var(--color-card-bg);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.theme-table thead {
+  background: var(--color-background);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.theme-table tbody tr {
+  border-bottom: 1px solid var(--color-border);
+  transition: background-color var(--transition-fast);
+}
+
+.theme-table tbody tr:hover {
+  background: rgba(var(--color-primary), 0.05);
+}
+
+/* Modal/Dialog Styles */
+.theme-modal {
+  background: var(--color-card-bg);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--color-border);
+}
+
+.theme-modal-header {
+  background: var(--color-primary-gradient);
+  color: white;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  padding: 1.5rem;
+}
+
+/* Progress Bar */
+.theme-progress {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+  height: 0.5rem;
+  overflow: hidden;
+}
+
+.theme-progress-bar {
+  background: var(--color-primary-gradient);
+  height: 100%;
+  transition: width var(--transition-slow);
+  border-radius: var(--radius-full);
+}
+
+/* Chart Container */
+.theme-chart-container {
+  background: var(--color-card-bg);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--card-shadow);
+}
+
+/* Divider */
+.theme-divider {
+  border-color: var(--color-border);
+  opacity: 0.5;
+}
+
+/* Text Colors */
+.theme-text-primary {
+  color: var(--color-text-primary);
+}
+
+.theme-text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.theme-text-muted {
+  color: var(--color-text-muted);
+}
+
+/* Success/Warning/Danger Text */
+.theme-text-success {
+  color: var(--color-success);
+}
+
+.theme-text-warning {
+  color: var(--color-warning);
+}
+
+.theme-text-danger {
+  color: var(--color-danger);
+}
+
+/* Icon Backgrounds */
+.theme-icon-wrapper {
+  border-radius: var(--radius-lg);
+  padding: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-icon-primary {
+  background: linear-gradient(135deg, rgba(var(--color-primary), 0.1) 0%, rgba(var(--color-accent), 0.1) 100%);
+  color: var(--color-primary);
+}
+
+.theme-icon-success {
+  background: rgba(var(--color-success), 0.1);
+  color: var(--color-success);
+}
+
+.theme-icon-warning {
+  background: rgba(var(--color-warning), 0.1);
+  color: var(--color-warning);
+}
+
+.theme-icon-danger {
+  background: rgba(var(--color-danger), 0.1);
+  color: var(--color-danger);
+}
+
+/* Loading Spinner */
+.theme-spinner {
+  border-color: var(--color-border);
+  border-top-color: var(--color-primary);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Hover Effects */
+.theme-hover-lift {
+  transition: all var(--transition-normal);
+}
+
+.theme-hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Focus Ring */
+.theme-focus-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(var(--color-primary), 0.3);
+  border-radius: var(--radius-md);
+}
+
+/* Gradient Text */
+.theme-gradient-text {
+  background: var(--color-primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}

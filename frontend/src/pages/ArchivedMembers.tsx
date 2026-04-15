@@ -74,6 +74,20 @@ export default function ArchivedMembers() {
   };
 
   const handleDeleteMember = async (memberId: string, memberName: string) => {
+    // Find the member to check their balance
+    const member = members.find(m => m.id === memberId);
+
+    if (!member) {
+      alert('שגיאה: מתאמן לא נמצא');
+      return;
+    }
+
+    // Check if member has a balance (positive or negative)
+    if (member.classesRemaining !== 0) {
+      alert(`❌ לא ניתן למחוק את ${memberName}.\n\nיתרת שיעורים: ${member.classesRemaining}\n\nניתן למחוק מתאמן רק כאשר יתרת השיעורים שלו היא 0.`);
+      return;
+    }
+
     if (!confirm(`⚠️ אזהרה! פעולה זו תמחק לצמיתות את ${memberName} וכל הנתונים הקשורים. האם להמשיך?`)) {
       return;
     }
@@ -114,7 +128,7 @@ export default function ArchivedMembers() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex" dir="rtl">
+    <div className="min-h-screen flex" dir="rtl" style={{ background: 'var(--sidebar-bg)' }}>
       <Sidebar />
 
       <main className="flex-1 overflow-y-auto">

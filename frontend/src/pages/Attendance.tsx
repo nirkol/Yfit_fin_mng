@@ -148,7 +148,7 @@ export default function Attendance() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex" dir="rtl">
+    <div className="min-h-screen flex" dir="rtl" style={{ background: 'var(--sidebar-bg)' }}>
       <Sidebar />
 
       {/* Main Content */}
@@ -158,14 +158,15 @@ export default function Attendance() {
             <h2 className="text-2xl font-bold text-gray-900">רישום נוכחות</h2>
             <p className="text-sm text-gray-500">שנה: {selectedYear}</p>
           </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Side - Form */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow p-6 sticky top-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">פרטי אימון</h2>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
+        {/* Training Details Form - Top Row Full Width */}
+        <div className="mb-6">
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">פרטי אימון</h2>
+
+            <form onSubmit={handleSubmit}>
+              <div className="flex flex-wrap items-end gap-4">
+                <div className="flex-1 min-w-[180px]">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     תאריך *
                   </label>
@@ -178,7 +179,7 @@ export default function Attendance() {
                   />
                 </div>
 
-                <div>
+                <div className="flex-1 min-w-[180px]">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     שעה *
                   </label>
@@ -191,37 +192,119 @@ export default function Attendance() {
                   />
                 </div>
 
-                <div className="pt-4 border-t">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">מתאמנים נבחרו:</span>
-                    <span className="text-2xl font-bold text-blue-600">{selectedMembers.size}</span>
+                <div className="flex-1 min-w-[180px]">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    משתתפים נבחרו
+                  </label>
+                  <div className="px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-center font-bold text-blue-600 text-lg">
+                    {selectedMembers.size}
                   </div>
-
-                  {selectedMembers.size > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setSelectedMembers(new Set())}
-                      className="w-full text-sm text-red-600 hover:text-red-700 py-2"
-                    >
-                      נקה בחירה
-                    </button>
-                  )}
                 </div>
 
                 <button
                   type="submit"
                   disabled={submitting || selectedMembers.size === 0}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="px-8 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   <Check className="w-5 h-5" />
                   {submitting ? 'שומר...' : 'רשום נוכחות'}
                 </button>
-              </form>
-            </div>
+              </div>
+            </form>
+          </div>
+        </div>
 
-            {/* Upcoming Birthdays Widget */}
-            {upcomingBirthdays.length > 0 && (
-              <div className="bg-white rounded-lg shadow p-6 mt-6">
+        {/* Members List (Right) and Birthday List (Left) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Members List - Right Side (2 columns) */}
+          <div className="lg:col-span-2 lg:order-1">
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  בחר משתתפים
+                </h2>
+                <input
+                  type="text"
+                  placeholder="חפש חבר..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[600px] overflow-y-auto">
+                {filteredMembers.map((member) => {
+                  const isSelected = selectedMembers.has(member.id);
+                  const hasDebt = member.classesRemaining < 0;
+                  const noClasses = member.classesRemaining === 0;
+
+                  return (
+                    <div
+                      key={member.id}
+                      onClick={() => toggleMember(member.id)}
+                      className={`p-3 border-2 rounded-lg cursor-pointer transition ${
+                        isSelected
+                          ? 'border-blue-600 bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start gap-2 flex-1 min-w-0">
+                          <div
+                            className={`w-5 h-5 rounded border-2 flex items-center justify-center transition flex-shrink-0 mt-0.5 ${
+                              isSelected
+                                ? 'bg-blue-600 border-blue-600'
+                                : 'border-gray-300'
+                            }`}
+                          >
+                            {isSelected && <Check className="w-3 h-3 text-white" />}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="font-medium text-gray-900 text-sm truncate">{member.name}</div>
+                            {hasDebt && (
+                              <div className="flex items-center gap-1 text-red-600 text-xs mt-0.5">
+                                <AlertTriangle className="w-3 h-3 flex-shrink-0" />
+                                <span className="font-semibold">חוב</span>
+                              </div>
+                            )}
+                            {noClasses && !hasDebt && (
+                              <div className="flex items-center gap-1 text-yellow-600 text-xs mt-0.5">
+                                <AlertTriangle className="w-3 h-3 flex-shrink-0" />
+                                <span className="font-semibold">אין שיעורים</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div
+                          className={`text-lg font-bold flex-shrink-0 ${
+                            hasDebt
+                              ? 'text-red-600'
+                              : noClasses
+                              ? 'text-yellow-600'
+                              : 'text-green-600'
+                          }`}
+                        >
+                          {member.classesRemaining}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {filteredMembers.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  לא נמצאו מתאמנים
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Birthday List - Left Side (1 column) */}
+          {upcomingBirthdays.length > 0 && (
+            <div className="lg:col-span-1 lg:order-2">
+              <div className="bg-white rounded-lg shadow p-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                   <Cake className="w-5 h-5 text-pink-500" />
                   ימי הולדת קרובים
@@ -262,98 +345,8 @@ export default function Attendance() {
                   ))}
                 </div>
               </div>
-            )}
-          </div>
-
-          {/* Right Side - Members List */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                  <Users className="w-5 h-5" />
-                  בחר משתתפים
-                </h2>
-                <input
-                  type="text"
-                  placeholder="חפש חבר..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                />
-              </div>
-
-              <div className="space-y-2 max-h-[600px] overflow-y-auto">
-                {filteredMembers.map((member) => {
-                  const isSelected = selectedMembers.has(member.id);
-                  const hasDebt = member.classesRemaining < 0;
-                  const noClasses = member.classesRemaining === 0;
-
-                  return (
-                    <div
-                      key={member.id}
-                      onClick={() => toggleMember(member.id)}
-                      className={`p-4 border-2 rounded-lg cursor-pointer transition ${
-                        isSelected
-                          ? 'border-blue-600 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div
-                            className={`w-6 h-6 rounded border-2 flex items-center justify-center transition ${
-                              isSelected
-                                ? 'bg-blue-600 border-blue-600'
-                                : 'border-gray-300'
-                            }`}
-                          >
-                            {isSelected && <Check className="w-4 h-4 text-white" />}
-                          </div>
-                          <div>
-                            <div className="font-medium text-gray-900">{member.name}</div>
-                            {member.phone && (
-                              <div className="text-sm text-gray-500">{member.phone}</div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          {hasDebt && (
-                            <div className="flex items-center gap-1 text-red-600">
-                              <AlertTriangle className="w-4 h-4" />
-                              <span className="text-sm font-semibold">חוב!</span>
-                            </div>
-                          )}
-                          {noClasses && !hasDebt && (
-                            <div className="flex items-center gap-1 text-yellow-600">
-                              <AlertTriangle className="w-4 h-4" />
-                              <span className="text-sm font-semibold">אין שיעורים</span>
-                            </div>
-                          )}
-                          <div
-                            className={`text-lg font-bold ${
-                              hasDebt
-                                ? 'text-red-600'
-                                : noClasses
-                                ? 'text-yellow-600'
-                                : 'text-green-600'
-                            }`}
-                          >
-                            {member.classesRemaining}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {filteredMembers.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  לא נמצאו מתאמנים
-                </div>
-              )}
             </div>
-          </div>
+          )}
         </div>
         </div>
       </main>
