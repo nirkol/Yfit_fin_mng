@@ -151,8 +151,8 @@ export default function SettingsPage() {
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">הגדרות</h2>
-            <p className="text-sm text-gray-500">ניהול מערכת</p>
+            <h2 className="text-2xl font-bold text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>הגדרות</h2>
+            <p className="text-sm text-white" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>ניהול מערכת</p>
           </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

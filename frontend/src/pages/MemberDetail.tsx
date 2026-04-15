@@ -187,8 +187,8 @@ export default function MemberDetail() {
               <ArrowRight className="w-5 h-5" />
             </button>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">{member.name}</h2>
-              <p className="text-sm text-gray-500">פרטי מתאמן</p>
+              <h2 className="text-2xl font-bold text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{member.name}</h2>
+              <p className="text-sm text-white" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>פרטי מתאמן</p>
             </div>
           </div>
 

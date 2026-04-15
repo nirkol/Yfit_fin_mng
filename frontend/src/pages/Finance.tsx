@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useYear } from '../contexts/YearContext';
 import { yearService } from '../services/yearService';
-import type { PackagePurchase, RefundTransaction, MemberWithBalance } from '../types';
+import { settingsService } from '../services/settingsService';
+import type { PackagePurchase, RefundTransaction, MemberWithBalance, Settings } from '../types';
 import { DollarSign, Users, TrendingUp, Package, AlertCircle, Calendar } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart, ReferenceLine } from 'recharts';
 import Sidebar from '../components/Sidebar';
@@ -25,6 +26,7 @@ export default function Finance() {
   const [packages, setPackages] = useState<PackagePurchase[]>([]);
   const [refunds, setRefunds] = useState<RefundTransaction[]>([]);
   const [members, setMembers] = useState<MemberWithBalance[]>([]);
+  const [settings, setSettings] = useState<Settings | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,14 +36,16 @@ export default function Finance() {
   const loadDashboard = async () => {
     try {
       setLoading(true);
-      const [yearData, balances] = await Promise.all([
+      const [yearData, balances, settingsData] = await Promise.all([
         yearService.getYearData(selectedYear),
-        yearService.getYearBalances(selectedYear)
+        yearService.getYearBalances(selectedYear),
+        settingsService.getSettings()
       ]);
 
       setPackages(yearData.packages || []);
       setRefunds(yearData.refunds || []);
       setMembers(balances);
+      setSettings(settingsData);
     } catch (error) {
       console.error('Failed to load dashboard:', error);
     } finally {
@@ -114,15 +118,23 @@ export default function Finance() {
 
   // Transaction history (packages + refunds)
   const transactions = [
-    ...packages.map(pkg => ({
-      id: pkg.id,
-      type: 'package' as const,
-      date: pkg.purchaseDate,
-      memberName: pkg.memberName,
-      amount: pkg.amountPaid,
-      description: `${pkg.packageType} - ${pkg.classCount} שיעורים`,
-      paymentMethod: pkg.paymentMethod
-    })),
+    ...packages.map(pkg => {
+      // Get package name from settings if available
+      const packageName = settings && pkg.packageType in settings
+        ? settings[pkg.packageType as keyof Settings].name
+        : pkg.packageType;
+
+      return {
+        id: pkg.id,
+        type: 'package' as const,
+        date: pkg.purchaseDate,
+        memberName: pkg.memberName,
+        amount: pkg.amountPaid,
+        description: packageName,
+        classCount: pkg.classCount,
+        paymentMethod: pkg.paymentMethod
+      };
+    }),
     ...refunds.map(ref => ({
       id: ref.id,
       type: 'refund' as const,
@@ -130,6 +142,7 @@ export default function Finance() {
       memberName: ref.memberName,
       amount: -ref.amount,
       description: ref.reason,
+      classCount: null,
       paymentMethod: ref.refundMethod
     }))
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -151,8 +164,8 @@ export default function Finance() {
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">דשבורד פיננסי</h2>
-            <p className="text-sm text-gray-500">שנה: {selectedYear}</p>
+            <h2 className="text-2xl font-bold text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>דשבורד פיננסי</h2>
+            <p className="text-sm text-white" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>שנה: {selectedYear}</p>
           </div>
 
           {/* Top Statistics */}
@@ -397,6 +410,7 @@ export default function Finance() {
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">סוג</th>
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">מתאמן</th>
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">פרטים</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">שיעורים</th>
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">תשלום</th>
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">סכום</th>
                   </tr>
@@ -416,6 +430,7 @@ export default function Finance() {
                       </td>
                       <td className="px-4 py-3 text-sm">{trans.memberName}</td>
                       <td className="px-4 py-3 text-sm">{trans.description}</td>
+                      <td className="px-4 py-3 text-sm">{trans.classCount !== null ? trans.classCount : '-'}</td>
                       <td className="px-4 py-3 text-sm">{trans.paymentMethod}</td>
                       <td className={`px-4 py-3 text-sm font-semibold ${
                         trans.amount >= 0 ? 'text-green-600' : 'text-red-600'

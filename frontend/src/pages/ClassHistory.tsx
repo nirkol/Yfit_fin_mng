@@ -158,14 +158,20 @@ export default function ClassHistory() {
     }
 
     try {
-      // TODO: Implement API call to update class attendance
-      // This would involve:
-      // 1. Deleting old attendance records for this date/time
-      // 2. Creating new attendance records with updated data
+      // The backend expects date in YYYY-MM-DD format and time in HH:MM format
+      // The markAttendance endpoint removes old attendance for the same date/time
+      // before adding new records
+
+      await yearService.markAttendance(selectedYear, {
+        date: editDate, // Already in YYYY-MM-DD format from the date input
+        time: editTime, // Already in HH:MM format from the time input
+        memberIds: editAttendees.map(a => a.memberId),
+        classType: 'regular'
+      });
 
       alert('שינויים נשמרו בהצלחה');
       setShowEditModal(false);
-      loadClasses();
+      await loadClasses(); // Wait for reload to complete
     } catch (error) {
       console.error('Failed to update class:', error);
       alert('שגיאה בעדכון שיעור');
@@ -198,8 +204,8 @@ export default function ClassHistory() {
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">היסטוריית שיעורים</h2>
-            <p className="text-sm text-gray-500">שנה: {selectedYear}</p>
+            <h2 className="text-2xl font-bold text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>היסטוריית שיעורים</h2>
+            <p className="text-sm text-white" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>שנה: {selectedYear}</p>
           </div>
 
         {/* Month Navigation with Inline Stats */}

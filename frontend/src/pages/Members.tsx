@@ -223,8 +223,8 @@ export default function Members() {
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-6 flex justify-between items-center">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">ניהול מתאמנים</h2>
-              <p className="text-sm text-gray-500">רשימת כל המתאמנים במערכת</p>
+              <h2 className="text-2xl font-bold text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>ניהול מתאמנים</h2>
+              <p className="text-sm text-white" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>רשימת כל המתאמנים במערכת</p>
             </div>
             <div className="flex gap-3">
               <button
