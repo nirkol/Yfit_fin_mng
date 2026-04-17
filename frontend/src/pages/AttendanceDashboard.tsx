@@ -146,13 +146,13 @@ export default function AttendanceDashboard() {
             />
             <StatCard
               icon={<Calendar className="w-6 h-6" />}
-              label="סה״כ שיעורים"
+              label="סה״כ שיעורים השנה"
               value={totalClasses.toString()}
               color="green"
             />
             <StatCard
               icon={<Activity className="w-6 h-6" />}
-              label="סה״כ נוכחות"
+              label="סה״כ נוכחות השנה"
               value={totalAttendance.toString()}
               color="purple"
             />
@@ -170,7 +170,7 @@ export default function AttendanceDashboard() {
             />
             <StatCard
               icon={<Users className="w-6 h-6" />}
-              label="ממוצע ייחודיים/חודש"
+              label="ממוצע מתאמנים אקטיבים בחודש"
               value={avgUniqueActivePerMonth.toFixed(1)}
               color="pink"
             />

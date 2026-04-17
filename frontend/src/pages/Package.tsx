@@ -7,6 +7,7 @@ import { settingsService } from '../services/settingsService';
 import type { Member, Settings, PackageType } from '../types';
 import { Package, CreditCard } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
+import { validateIntegerInput, validateNumericInput } from '../utils/validation';
 
 export default function PackageSales() {
   const navigate = useNavigate();
@@ -236,7 +237,7 @@ export default function PackageSales() {
                     <input
                       type="number"
                       value={classCount}
-                      onChange={(e) => setClassCount(parseInt(e.target.value) || 0)}
+                      onChange={(e) => setClassCount(parseInt(validateIntegerInput(e.target.value)) || 0)}
                       min="1"
                       className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                       required
@@ -250,7 +251,7 @@ export default function PackageSales() {
                       type="number"
                       value={amountPaid}
                       onChange={(e) => {
-                        const val = parseFloat(e.target.value) || 0;
+                        const val = parseFloat(validateNumericInput(e.target.value)) || 0;
                         setAmountPaid(val);
                         setPrice(val);
                       }}

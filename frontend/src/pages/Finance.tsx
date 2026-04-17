@@ -53,8 +53,8 @@ export default function Finance() {
     }
   };
 
-  // Tax cap threshold for self-employed (osek patur)
-  const TAX_CAP = 102292; // 2024 Israeli tax cap for עוסק פטור
+  // Tax cap threshold - use from settings or default to Israeli osek patur cap
+  const TAX_CAP = settings?.yearlyTaxCap || 102292;
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('he-IL', {
@@ -230,21 +230,23 @@ export default function Finance() {
                   <YAxis />
                   <Tooltip formatter={(value) => formatCurrency(value as number)} />
                   <Legend />
-                  <ReferenceLine
-                    y={TAX_CAP}
-                    stroke="#ef4444"
-                    strokeWidth={3}
-                    strokeDasharray="8 4"
-                    label={{
-                      value: `תקרת מס: ${formatCurrency(TAX_CAP)}`,
-                      position: 'top',
-                      fill: '#ef4444',
-                      fontWeight: 'bold',
-                      fontSize: 14,
-                      offset: 10
-                    }}
-                    isFront={true}
-                  />
+                  {TAX_CAP && (
+                    <ReferenceLine
+                      y={TAX_CAP}
+                      stroke="#ef4444"
+                      strokeWidth={3}
+                      strokeDasharray="8 4"
+                      label={{
+                        value: `תקרת מס: ${formatCurrency(TAX_CAP)}`,
+                        position: 'top',
+                        fill: '#ef4444',
+                        fontWeight: 'bold',
+                        fontSize: 14,
+                        offset: 10
+                      }}
+                      isFront={true}
+                    />
+                  )}
                   <Area type="monotone" dataKey="cumulative" stroke="#10b981" fill="#10b981" fillOpacity={0.6} name="מצטבר" />
                 </AreaChart>
               </ResponsiveContainer>
@@ -324,28 +326,9 @@ export default function Finance() {
                   <Pie
                     data={paymentMethodsData}
                     cx="50%"
-                    cy="45%"
-                    labelLine={true}
-                    label={({ cx, cy, midAngle, outerRadius, method, percent }) => {
-                      const RADIAN = Math.PI / 180;
-                      const radius = outerRadius + 25;
-                      const x = cx + radius * Math.cos(-midAngle * RADIAN);
-                      const y = cy + radius * Math.sin(-midAngle * RADIAN);
-                      return (
-                        <text
-                          x={x}
-                          y={y}
-                          fill="#374151"
-                          textAnchor={x > cx ? 'start' : 'end'}
-                          dominantBaseline="central"
-                          style={{ fontSize: '13px', fontWeight: '500' }}
-                        >
-                          {`${method} (${(percent * 100).toFixed(0)}%)`}
-                        </text>
-                      );
-                    }}
-                    outerRadius={90}
-                    innerRadius={55}
+                    cy="50%"
+                    outerRadius={100}
+                    innerRadius={60}
                     fill="#8884d8"
                     dataKey="amount"
                     nameKey="method"
@@ -370,7 +353,9 @@ export default function Finance() {
                     iconType="circle"
                     formatter={(value: string, entry: any) => {
                       const data = entry.payload;
-                      return `${value}: ${formatCurrency(data.amount)}`;
+                      const total = paymentMethodsData.reduce((sum, item) => sum + item.amount, 0);
+                      const percentage = total > 0 ? ((data.amount / total) * 100).toFixed(0) : 0;
+                      return `${value}: ${formatCurrency(data.amount)} (${percentage}%)`;
                     }}
                   />
                 </PieChart>

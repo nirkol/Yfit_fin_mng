@@ -6,6 +6,7 @@ import { yearService } from '../services/yearService';
 import type { Member } from '../types';
 import { Edit, Archive, Package, Users as UsersIcon, DollarSign, ArrowRight, Trash2, RotateCcw } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
+import { validateTextInput, validatePhoneInput } from '../utils/validation';
 
 export default function MemberDetail() {
   const { id } = useParams<{ id: string }>();
@@ -93,8 +94,8 @@ export default function MemberDetail() {
   const handleDelete = async () => {
     if (!member) return;
 
-    if (balance !== 0) {
-      alert(`❌ לא ניתן למחוק את ${member.name}.\n\nיתרת שיעורים: ${balance}\n\nניתן למחוק מתאמן רק כאשר יתרת השיעורים שלו היא 0.`);
+    if (balance > 0) {
+      alert(`❌ לא ניתן למחוק את ${member.name}.\n\nיתרת שיעורים: ${balance}\n\nניתן למחוק מתאמן רק כאשר יתרת השיעורים שלו היא 0 או שלילית.`);
       return;
     }
 
@@ -235,13 +236,13 @@ export default function MemberDetail() {
               </button>
               <button
                 onClick={handleDelete}
-                disabled={balance !== 0}
+                disabled={balance > 0}
                 className={`px-4 py-2 rounded-lg transition flex items-center gap-2 ${
-                  balance !== 0
+                  balance > 0
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : 'bg-red-600 text-white hover:bg-red-700'
                 }`}
-                title={balance !== 0 ? 'ניתן למחוק רק כאשר היתרה 0' : 'מחיקת מתאמן'}
+                title={balance > 0 ? 'ניתן למחוק רק כאשר היתרה 0 או שלילית' : 'מחיקת מתאמן'}
               >
                 <Trash2 className="w-4 h-4" />
                 <span>מחק</span>
@@ -390,7 +391,7 @@ export default function MemberDetail() {
                   <input
                     type="text"
                     value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
+                    onChange={(e) => setEditName(validateTextInput(e.target.value))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                     required
                   />
@@ -402,7 +403,7 @@ export default function MemberDetail() {
                   <input
                     type="tel"
                     value={editPhone}
-                    onChange={(e) => setEditPhone(e.target.value)}
+                    onChange={(e) => setEditPhone(validatePhoneInput(e.target.value))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                     placeholder="05X-XXXXXXX"
                   />

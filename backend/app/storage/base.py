@@ -7,7 +7,7 @@ class StorageAdapter(ABC):
 
     # === Members ===
     @abstractmethod
-    def get_members(self, archived: bool = False) -> List[Dict]:
+    def get_members(self, archived: Optional[bool] = None) -> List[Dict]:
         """Get all members, optionally filtered by archived status"""
         pass
 

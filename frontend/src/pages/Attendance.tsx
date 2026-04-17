@@ -5,6 +5,7 @@ import { yearService } from '../services/yearService';
 import type { MemberWithBalance } from '../types';
 import { Check, Users, AlertTriangle, PartyPopper, Cake } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
+import { validateTimeInput } from '../utils/validation';
 
 export default function Attendance() {
   const navigate = useNavigate();
@@ -53,6 +54,24 @@ export default function Attendance() {
 
     if (selectedMembers.size === 0) {
       alert('בחר לפחות חבר אחד');
+      return;
+    }
+
+    // Check if class already exists at this date and time
+    try {
+      const yearData = await yearService.getYearData(selectedYear);
+      const existingClass = yearData.attendance?.find((att: any) => {
+        const attDate = new Date(att.date).toISOString().split('T')[0];
+        return attDate === date && att.time === time;
+      });
+
+      if (existingClass) {
+        alert(`❌ שגיאה: כבר קיים שיעור בתאריך ${date} בשעה ${time}.\n\nלא ניתן ליצור שני שיעורים באותו זמן.`);
+        return;
+      }
+    } catch (error) {
+      console.error('Failed to check existing classes:', error);
+      alert('שגיאה בבדיקת שיעורים קיימים');
       return;
     }
 
@@ -186,7 +205,7 @@ export default function Attendance() {
                   <input
                     type="time"
                     value={time}
-                    onChange={(e) => setTime(e.target.value)}
+                    onChange={(e) => setTime(validateTimeInput(e.target.value))}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                     required
                   />

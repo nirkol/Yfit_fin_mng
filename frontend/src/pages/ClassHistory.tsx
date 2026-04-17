@@ -5,6 +5,7 @@ import { yearService } from '../services/yearService';
 import type { AttendanceRecord } from '../types';
 import { Calendar, Users, Clock, Search, ChevronLeft, ChevronRight, Edit, X } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
+import { validateTimeInput } from '../utils/validation';
 
 interface ClassSession {
   date: string;
@@ -373,7 +374,7 @@ export default function ClassHistory() {
                   <input
                     type="time"
                     value={editTime}
-                    onChange={(e) => setEditTime(e.target.value)}
+                    onChange={(e) => setEditTime(validateTimeInput(e.target.value))}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   />
                 </div>

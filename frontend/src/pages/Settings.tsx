@@ -6,6 +6,7 @@ import { authService } from '../services/authService';
 import type { Settings, PackageConfig } from '../types';
 import { Save, Download, Upload, Key, Package as PackageIcon } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
+import { validateIntegerInput, validateNumericInput, validatePasswordInput } from '../utils/validation';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -179,14 +180,14 @@ export default function SettingsPage() {
                     type="number"
                     placeholder="שיעורים"
                     value={package1.classCount}
-                    onChange={(e) => setPackage1({ ...package1, classCount: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => setPackage1({ ...package1, classCount: parseInt(validateIntegerInput(e.target.value)) || 0 })}
                     className="px-3 py-2 border rounded-lg"
                   />
                   <input
                     type="number"
                     placeholder="מחיר ₪"
                     value={package1.price}
-                    onChange={(e) => setPackage1({ ...package1, price: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) => setPackage1({ ...package1, price: parseFloat(validateNumericInput(e.target.value)) || 0 })}
                     className="px-3 py-2 border rounded-lg"
                   />
                 </div>
@@ -207,14 +208,14 @@ export default function SettingsPage() {
                     type="number"
                     placeholder="שיעורים"
                     value={package2.classCount}
-                    onChange={(e) => setPackage2({ ...package2, classCount: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => setPackage2({ ...package2, classCount: parseInt(validateIntegerInput(e.target.value)) || 0 })}
                     className="px-3 py-2 border rounded-lg"
                   />
                   <input
                     type="number"
                     placeholder="מחיר ₪"
                     value={package2.price}
-                    onChange={(e) => setPackage2({ ...package2, price: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) => setPackage2({ ...package2, price: parseFloat(validateNumericInput(e.target.value)) || 0 })}
                     className="px-3 py-2 border rounded-lg"
                   />
                 </div>
@@ -235,14 +236,14 @@ export default function SettingsPage() {
                     type="number"
                     placeholder="שיעורים"
                     value={package3.classCount}
-                    onChange={(e) => setPackage3({ ...package3, classCount: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => setPackage3({ ...package3, classCount: parseInt(validateIntegerInput(e.target.value)) || 0 })}
                     className="px-3 py-2 border rounded-lg"
                   />
                   <input
                     type="number"
                     placeholder="מחיר ₪"
                     value={package3.price}
-                    onChange={(e) => setPackage3({ ...package3, price: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) => setPackage3({ ...package3, price: parseFloat(validateNumericInput(e.target.value)) || 0 })}
                     className="px-3 py-2 border rounded-lg"
                   />
                 </div>
@@ -263,14 +264,14 @@ export default function SettingsPage() {
                     type="number"
                     placeholder="שיעורים"
                     value={package4.classCount}
-                    onChange={(e) => setPackage4({ ...package4, classCount: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => setPackage4({ ...package4, classCount: parseInt(validateIntegerInput(e.target.value)) || 0 })}
                     className="px-3 py-2 border rounded-lg"
                   />
                   <input
                     type="number"
                     placeholder="מחיר ₪"
                     value={package4.price}
-                    onChange={(e) => setPackage4({ ...package4, price: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) => setPackage4({ ...package4, price: parseFloat(validateNumericInput(e.target.value)) || 0 })}
                     className="px-3 py-2 border rounded-lg"
                   />
                 </div>
@@ -285,7 +286,7 @@ export default function SettingsPage() {
                   type="number"
                   placeholder="לא מוגדר"
                   value={taxCap || ''}
-                  onChange={(e) => setTaxCap(e.target.value ? parseFloat(e.target.value) : null)}
+                  onChange={(e) => setTaxCap(e.target.value ? parseFloat(validateNumericInput(e.target.value)) : null)}
                   className="w-full px-3 py-2 border rounded-lg"
                 />
                 <p className="text-sm text-gray-500 mt-1">השאר ריק אם אין תקרה</p>
@@ -328,7 +329,7 @@ export default function SettingsPage() {
                     <input
                       type="password"
                       value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      onChange={(e) => setCurrentPassword(validatePasswordInput(e.target.value))}
                       className="w-full px-4 py-2 border rounded-lg"
                       required
                     />
@@ -341,7 +342,7 @@ export default function SettingsPage() {
                     <input
                       type="text"
                       value={newUsername}
-                      onChange={(e) => setNewUsername(e.target.value)}
+                      onChange={(e) => setNewUsername(validatePasswordInput(e.target.value))}
                       className="w-full px-4 py-2 border rounded-lg"
                       required
                     />
@@ -354,7 +355,7 @@ export default function SettingsPage() {
                     <input
                       type="password"
                       value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
+                      onChange={(e) => setNewPassword(validatePasswordInput(e.target.value))}
                       className="w-full px-4 py-2 border rounded-lg"
                       required
                       minLength={6}
@@ -368,7 +369,7 @@ export default function SettingsPage() {
                     <input
                       type="password"
                       value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      onChange={(e) => setConfirmPassword(validatePasswordInput(e.target.value))}
                       className="w-full px-4 py-2 border rounded-lg"
                       required
                     />

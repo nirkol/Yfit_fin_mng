@@ -6,6 +6,7 @@ import { yearService } from '../services/yearService';
 import type { MemberWithBalance, YearData } from '../types';
 import { Users, Search, Plus, X, Eye, Archive, Trash2, MoreVertical } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
+import { validateTextInput, validatePhoneInput } from '../utils/validation';
 
 interface EnhancedMember extends MemberWithBalance {
   amountPaidThisYear: number;
@@ -135,9 +136,9 @@ export default function Members() {
       return;
     }
 
-    // Check if member has a balance (positive or negative)
-    if (member.classesRemaining !== 0) {
-      alert(`❌ לא ניתן למחוק את ${memberName}.\n\nיתרת שיעורים: ${member.classesRemaining}\n\nניתן למחוק מתאמן רק כאשר יתרת השיעורים שלו היא 0.`);
+    // Check if member has a positive balance
+    if (member.classesRemaining > 0) {
+      alert(`❌ לא ניתן למחוק את ${memberName}.\n\nיתרת שיעורים: ${member.classesRemaining}\n\nניתן למחוק מתאמן רק כאשר יתרת השיעורים שלו היא 0 או שלילית.`);
       return;
     }
 
@@ -228,7 +229,7 @@ export default function Members() {
             </div>
             <div className="flex gap-3">
               <button
-                onClick={() => navigate('/archived-members')}
+                onClick={() => navigate('/members/archived')}
                 disabled={archivedCount === 0}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
                   archivedCount === 0
@@ -384,19 +385,6 @@ export default function Members() {
           </table>
         </div>
 
-        {/* Archived Members Button */}
-        {archivedCount > 0 && (
-          <div className="mt-6 flex justify-center">
-            <button
-              onClick={() => navigate('/members/archived')}
-              className="flex items-center gap-2 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition"
-            >
-              <Archive className="w-5 h-5" />
-              <span className="font-medium">מתאמנים בארכיון ({archivedCount})</span>
-            </button>
-          </div>
-        )}
-
         {/* Create Member Modal */}
         {showCreateModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -424,7 +412,7 @@ export default function Members() {
                   <input
                     type="text"
                     value={newMemberName}
-                    onChange={(e) => setNewMemberName(e.target.value)}
+                    onChange={(e) => setNewMemberName(validateTextInput(e.target.value))}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                     required
                     placeholder="הזן שם מלא"
@@ -438,7 +426,7 @@ export default function Members() {
                   <input
                     type="tel"
                     value={newMemberPhone}
-                    onChange={(e) => setNewMemberPhone(e.target.value)}
+                    onChange={(e) => setNewMemberPhone(validatePhoneInput(e.target.value))}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                     placeholder="05X-XXXXXXX"
                   />

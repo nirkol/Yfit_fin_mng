@@ -4,7 +4,7 @@ import { useYear } from '../contexts/YearContext';
 import { memberService } from '../services/memberService';
 import { yearService } from '../services/yearService';
 import type { MemberWithBalance, YearData } from '../types';
-import { Search, Eye, Archive, Trash2, ArrowRight } from 'lucide-react';
+import { Search, Eye, ArchiveRestore, Trash2, ArrowRight } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 
 interface EnhancedMember extends MemberWithBalance {
@@ -26,31 +26,56 @@ export default function ArchivedMembers() {
   const loadMembers = async () => {
     try {
       setLoading(true);
-      const [balances, yearData] = await Promise.all([
-        yearService.getYearBalances(selectedYear),
+
+      // Fetch archived members directly
+      const [archivedMembers, yearData] = await Promise.all([
+        memberService.getMembers(true), // Get only archived members
         yearService.getYearData(selectedYear)
       ]);
 
-      // Calculate amount paid and attendance for each member
-      const enhancedMembers: EnhancedMember[] = balances.map(member => {
+      // Calculate amount paid and attendance for each archived member
+      const enhancedMembers: EnhancedMember[] = archivedMembers.map(member => {
+        // Calculate balance for this member
+        const opening = yearData.openingBalances?.find((ob: any) => ob.memberId === member.id)?.classes || 0;
+        const purchased = (yearData.packages || [])
+          .filter(pkg => pkg.memberId === member.id)
+          .reduce((sum, pkg) => sum + pkg.classCount, 0);
+        const attended = (yearData.attendance || [])
+          .filter(att => att.memberId === member.id)
+          .length;
+        const refunded = (yearData.refunds || [])
+          .filter((r: any) => r.memberId === member.id)
+          .reduce((sum: number, r: any) => sum + r.classesRefunded, 0);
+
+        const classesRemaining = opening + purchased - attended - refunded;
+
+        // Calculate amount paid
         const amountPaid = (yearData.packages || [])
           .filter(pkg => pkg.memberId === member.id)
           .reduce((sum, pkg) => sum + pkg.amountPaid, 0);
 
+        // Calculate debt amount
+        const totalRefunded = (yearData.refunds || [])
+          .filter((r: any) => r.memberId === member.id)
+          .reduce((sum: number, r: any) => sum + r.amount, 0);
+        const debtAmount = Math.max(0, totalRefunded - amountPaid);
+
+        // Count attendance
         const attendanceCount = (yearData.attendance || [])
           .filter(att => att.memberId === member.id)
           .length;
 
         return {
           ...member,
+          classesRemaining,
+          debtAmount,
           amountPaidThisYear: amountPaid,
-          attendanceCountThisYear: attendanceCount
-        };
+          attendanceCountThisYear: attendanceCount,
+          status: classesRemaining < 0 ? 'in_debt' : classesRemaining === 0 ? 'no_classes' : 'active'
+        } as EnhancedMember;
       });
 
-      // Filter only archived members
-      const archived = enhancedMembers.filter(m => m.isArchived);
-      setMembers(archived);
+      setMembers(enhancedMembers);
     } catch (error) {
       console.error('Failed to load members:', error);
     } finally {
@@ -82,9 +107,9 @@ export default function ArchivedMembers() {
       return;
     }
 
-    // Check if member has a balance (positive or negative)
-    if (member.classesRemaining !== 0) {
-      alert(`❌ לא ניתן למחוק את ${memberName}.\n\nיתרת שיעורים: ${member.classesRemaining}\n\nניתן למחוק מתאמן רק כאשר יתרת השיעורים שלו היא 0.`);
+    // Check if member has a positive balance
+    if (member.classesRemaining > 0) {
+      alert(`❌ לא ניתן למחוק את ${memberName}.\n\nיתרת שיעורים: ${member.classesRemaining}\n\nניתן למחוק מתאמן רק כאשר יתרת השיעורים שלו היא 0 או שלילית.`);
       return;
     }
 
@@ -251,7 +276,7 @@ export default function ArchivedMembers() {
                             className="p-1 text-green-600 hover:bg-green-50 rounded transition"
                             title="שחזור"
                           >
-                            <Archive className="w-4 h-4" />
+                            <ArchiveRestore className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteMember(member.id, member.name)}
