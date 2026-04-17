@@ -7,8 +7,26 @@ class YearService:
     def __init__(self, storage):
         self.storage = storage
 
+    def ensure_current_year_exists(self) -> Dict:
+        """
+        Ensure current year exists in database.
+        If not, automatically create it from previous year's balances.
+        This should be called on app startup or when loading year data.
+        """
+        current_year = str(datetime.now().year)
+        year_data = self.storage.get_year_data(current_year)
+
+        if not year_data:
+            # Current year doesn't exist, create it
+            return self.create_year_from_previous(current_year)
+
+        return year_data
+
     def get_years_list(self) -> List[Dict]:
         """Get list of all years with metadata"""
+        # Ensure current year exists before listing
+        self.ensure_current_year_exists()
+
         years = self.storage.get_years()
         current_year = str(datetime.now().year)
 

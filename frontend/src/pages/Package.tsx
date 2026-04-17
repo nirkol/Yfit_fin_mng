@@ -5,13 +5,16 @@ import { memberService } from '../services/memberService';
 import { yearService } from '../services/yearService';
 import { settingsService } from '../services/settingsService';
 import type { Member, Settings, PackageType } from '../types';
-import { Package, CreditCard } from 'lucide-react';
+import { Package, CreditCard, Lock } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import { validateIntegerInput, validateNumericInput } from '../utils/validation';
+import { useYearEditable } from '../hooks/useYearEditable';
+import { getCurrentDate } from '../utils/testMode';
 
 export default function PackageSales() {
   const navigate = useNavigate();
   const { selectedYear } = useYear();
+  const isEditable = useYearEditable(selectedYear);
   const [members, setMembers] = useState<Member[]>([]);
   const [settings, setSettings] = useState<Settings | null>(null);
   const [loading, setLoading] = useState(true);
@@ -26,7 +29,7 @@ export default function PackageSales() {
   const [price, setPrice] = useState(900);
   const [amountPaid, setAmountPaid] = useState(900);
   const [paymentMethod, setPaymentMethod] = useState('מזומן');
-  const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
+  const [purchaseDate, setPurchaseDate] = useState(getCurrentDate().toISOString().split('T')[0]);
 
   useEffect(() => {
     loadData();
@@ -131,6 +134,16 @@ export default function PackageSales() {
             <Package className="w-6 h-6 text-blue-600" />
             <h2 className="text-xl font-semibold text-gray-800">פרטי כרטיסייה</h2>
           </div>
+
+          {!isEditable && (
+            <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg flex items-center gap-3">
+              <Lock className="w-5 h-5 text-orange-600 flex-shrink-0" />
+              <div>
+                <p className="text-orange-800 font-semibold">שנה זו במצב קריאה בלבד</p>
+                <p className="text-orange-700 text-sm">ניתן לערוך רק את השנה הנוכחית או את השנה הקודמת בחודש ינואר</p>
+              </div>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Member Selection */}
@@ -302,7 +315,7 @@ export default function PackageSales() {
             <div className="flex gap-3 pt-4 border-t">
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={submitting || !isEditable}
                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 <CreditCard className="w-5 h-5" />

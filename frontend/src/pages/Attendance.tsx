@@ -3,20 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import { useYear } from '../contexts/YearContext';
 import { yearService } from '../services/yearService';
 import type { MemberWithBalance } from '../types';
-import { Check, Users, AlertTriangle, PartyPopper, Cake } from 'lucide-react';
+import { Check, Users, AlertTriangle, PartyPopper, Cake, Lock } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import { validateTimeInput } from '../utils/validation';
+import { useYearEditable } from '../hooks/useYearEditable';
+import { getCurrentDate } from '../utils/testMode';
 
 export default function Attendance() {
   const navigate = useNavigate();
   const { selectedYear } = useYear();
+  const isEditable = useYearEditable(selectedYear);
   const [members, setMembers] = useState<MemberWithBalance[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   // Form state
   const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(getCurrentDate().toISOString().split('T')[0]);
   const [time, setTime] = useState('18:00');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -183,6 +186,16 @@ export default function Attendance() {
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">פרטי אימון</h2>
 
+            {!isEditable && (
+              <div className="mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg flex items-center gap-3">
+                <Lock className="w-5 h-5 text-orange-600 flex-shrink-0" />
+                <div>
+                  <p className="text-orange-800 font-semibold">שנה זו במצב קריאה בלבד</p>
+                  <p className="text-orange-700 text-sm">ניתן לערוך רק את השנה הנוכחית או את השנה הקודמת בחודש ינואר</p>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit}>
               <div className="flex flex-wrap items-end gap-4">
                 <div className="flex-1 min-w-[180px]">
@@ -222,7 +235,7 @@ export default function Attendance() {
 
                 <button
                   type="submit"
-                  disabled={submitting || selectedMembers.size === 0}
+                  disabled={submitting || selectedMembers.size === 0 || !isEditable}
                   className="px-8 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   <Check className="w-5 h-5" />

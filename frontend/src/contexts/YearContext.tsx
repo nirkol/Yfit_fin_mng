@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { yearService } from '../services/yearService';
+import { getCurrentYear } from '../utils/testMode';
 
 interface YearContextType {
   selectedYear: string;
@@ -11,9 +12,9 @@ interface YearContextType {
 const YearContext = createContext<YearContextType | undefined>(undefined);
 
 export function YearProvider({ children }: { children: ReactNode }) {
-  const [selectedYear, setSelectedYear] = useState<string>(
-    new Date().getFullYear().toString()
-  );
+  const currentYear = getCurrentYear();
+
+  const [selectedYear, setSelectedYear] = useState<string>(currentYear);
   const [availableYears, setAvailableYears] = useState<string[]>([]);
 
   const refreshYears = async () => {
@@ -22,10 +23,15 @@ export function YearProvider({ children }: { children: ReactNode }) {
       const yearKeys = years.map((y) => y.yearKey);
       setAvailableYears(yearKeys);
 
-      // If selected year doesn't exist, set to current year or first available
-      if (!yearKeys.includes(selectedYear)) {
-        const currentYear = new Date().getFullYear().toString();
-        setSelectedYear(yearKeys.includes(currentYear) ? currentYear : yearKeys[0] || currentYear);
+      // Always prioritize current year if it exists
+      const currentYearKey = getCurrentYear();
+
+      if (yearKeys.includes(currentYearKey)) {
+        // If current year exists, always select it
+        setSelectedYear(currentYearKey);
+      } else if (!yearKeys.includes(selectedYear)) {
+        // If selected year doesn't exist and current year doesn't exist, use first available
+        setSelectedYear(yearKeys[0] || currentYearKey);
       }
     } catch (error) {
       console.error('Failed to fetch years:', error);

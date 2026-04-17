@@ -6,6 +6,7 @@ import type { AttendanceRecord } from '../types';
 import { Calendar, Users, Clock, Search, ChevronLeft, ChevronRight, Edit, X } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import { validateTimeInput } from '../utils/validation';
+import { getCurrentDate } from '../utils/testMode';
 
 interface ClassSession {
   date: string;
@@ -29,8 +30,8 @@ export default function ClassHistory() {
   const [editAttendees, setEditAttendees] = useState<Array<{ memberId: string; memberName: string }>>([]);
   const [allMembers, setAllMembers] = useState<Array<{ id: string; name: string }>>([]);
 
-  // Month navigation state - default to current month
-  const now = new Date();
+  // Month navigation state - default to current month (using test mode date)
+  const now = getCurrentDate();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth()); // 0-11
   const [selectedMonthYear, setSelectedMonthYear] = useState(parseInt(selectedYear));
 
