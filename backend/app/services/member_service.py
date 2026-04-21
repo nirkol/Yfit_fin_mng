@@ -2,6 +2,7 @@ from typing import List, Optional, Dict
 from app.services.calculation_service import (
     calculate_member_balance,
     calculate_debt,
+    calculate_money_balance,
     get_price_per_class,
     get_member_status
 )
@@ -20,8 +21,12 @@ class MemberService:
 
         settings = self.settings_getter()
         classes_remaining = calculate_member_balance(member_id, year_key, self.storage)
-        price_per_class = get_price_per_class(member_id, year_key, self.storage, settings)
-        debt_amount = calculate_debt(classes_remaining, price_per_class)
+        money_balance = calculate_money_balance(member_id, year_key, self.storage, settings)
+
+        # Debt amount is now the negative money balance (if any)
+        debt_amount = abs(money_balance) if money_balance < 0 else 0.0
+
+        # Update status based on money balance
         status, _ = get_member_status(member.get("isArchived", False), classes_remaining)
 
         # Get total attended for this year
@@ -35,6 +40,7 @@ class MemberService:
         return {
             **member,
             "classesRemaining": classes_remaining,
+            "moneyBalance": money_balance,  # Can be positive (credit) or negative (debt)
             "debtAmount": debt_amount,
             "status": status,
             "totalAttended": total_attended,
@@ -53,8 +59,12 @@ class MemberService:
 
             member_id = member["id"]
             classes_remaining = calculate_member_balance(member_id, year_key, self.storage)
-            price_per_class = get_price_per_class(member_id, year_key, self.storage, settings)
-            debt_amount = calculate_debt(classes_remaining, price_per_class)
+            money_balance = calculate_money_balance(member_id, year_key, self.storage, settings)
+
+            # Debt amount is the negative money balance (if any)
+            debt_amount = abs(money_balance) if money_balance < 0 else 0.0
+
+            # Update status based on money balance
             status, _ = get_member_status(member.get("isArchived", False), classes_remaining)
 
             # Get total attended for this year
@@ -68,6 +78,7 @@ class MemberService:
             result.append({
                 **member,
                 "classesRemaining": classes_remaining,
+                "moneyBalance": money_balance,  # Can be positive (credit) or negative (debt)
                 "debtAmount": debt_amount,
                 "status": status,
                 "totalAttended": total_attended,

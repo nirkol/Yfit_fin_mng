@@ -310,9 +310,9 @@ export default function Members() {
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-center">
                       <span className={`font-semibold ${
-                        member.debtAmount > 0 ? 'text-red-600' : 'text-gray-900'
+                        member.moneyBalance < 0 ? 'text-red-600' : member.moneyBalance > 0 ? 'text-green-600' : 'text-gray-900'
                       }`}>
-                        {member.debtAmount > 0 ? `-${formatCurrency(member.debtAmount)}` : formatCurrency(0)}
+                        {formatCurrency(member.moneyBalance)}
                       </span>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-center">

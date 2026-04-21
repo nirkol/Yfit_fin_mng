@@ -11,6 +11,7 @@ export interface Member {
 
 export interface MemberWithBalance extends Member {
   classesRemaining: number;
+  moneyBalance: number;  // Can be positive (credit) or negative (debt)
   debtAmount: number;
   status: MemberStatus;
   totalAttended?: number;

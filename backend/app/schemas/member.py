@@ -32,6 +32,7 @@ class Member(MemberBase):
 
 class MemberWithBalance(Member):
     classesRemaining: int
+    moneyBalance: float
     debtAmount: float
     status: str
     totalAttended: Optional[int] = 0
