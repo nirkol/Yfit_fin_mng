@@ -122,7 +122,7 @@ async def set_opening_balance(
     if not member:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Member not found")
 
-    success = storage.set_opening_balance(year_key, request.memberId, request.classes)
+    success = storage.set_opening_balance(year_key, request.memberId, request.classes, request.moneyBalance or 0.0)
     if not success:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update opening balance")
 

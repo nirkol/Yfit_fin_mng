@@ -1,5 +1,7 @@
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, Request
 from datetime import timedelta
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from app.schemas.auth import LoginRequest, LoginResponse, UpdateCredentialsRequest
 from app.services.auth_service import AuthService
 from app.utils.auth import create_access_token
@@ -7,11 +9,13 @@ from app.config import settings
 from app.api.deps import get_storage, get_current_user
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 @router.post("/login", response_model=LoginResponse)
-async def login(request: LoginRequest):
-    """Login endpoint"""
+@limiter.limit("5/minute")  # Max 5 login attempts per minute per IP
+async def login(request: LoginRequest, http_request: Request):
+    """Login endpoint with rate limiting"""
     storage = get_storage()
     auth_service = AuthService(storage)
 

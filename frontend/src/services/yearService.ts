@@ -37,11 +37,13 @@ export const yearService = {
   setOpeningBalance: async (
     yearKey: string,
     memberId: string,
-    classes: number
+    classes: number,
+    moneyBalance?: number
   ): Promise<void> => {
     await api.post(`/api/years/${yearKey}/opening-balance`, {
       memberId,
       classes,
+      moneyBalance: moneyBalance || 0.0,
     });
   },
 

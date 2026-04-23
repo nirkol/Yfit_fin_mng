@@ -28,7 +28,7 @@ export default function PackageSales() {
   const [classCount, setClassCount] = useState(20);
   const [price, setPrice] = useState(900);
   const [amountPaid, setAmountPaid] = useState(900);
-  const [paymentMethod, setPaymentMethod] = useState('מזומן');
+  const [paymentMethod, setPaymentMethod] = useState('ביט');
   const [purchaseDate, setPurchaseDate] = useState(getCurrentDate().toISOString().split('T')[0]);
 
   useEffect(() => {

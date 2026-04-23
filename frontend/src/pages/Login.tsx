@@ -79,11 +79,6 @@ export default function Login() {
             {loading ? 'מתחבר...' : 'התחברות'}
           </button>
         </form>
-
-        <div className="mt-6 text-center text-sm text-gray-500">
-          <p>משתמש ברירת מחדל: admin</p>
-          <p>סיסמה: admin123</p>
-        </div>
       </div>
     </div>
   );

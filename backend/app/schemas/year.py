@@ -6,6 +6,7 @@ class OpeningBalance(BaseModel):
     memberId: str
     memberName: Optional[str] = None
     classes: int
+    moneyBalance: Optional[float] = 0.0
 
 
 class YearBase(BaseModel):
@@ -37,3 +38,4 @@ class YearData(BaseModel):
 class SetOpeningBalanceRequest(BaseModel):
     memberId: str
     classes: int
+    moneyBalance: Optional[float] = 0.0

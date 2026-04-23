@@ -13,6 +13,7 @@ class FileStorageAdapter(StorageAdapter):
         self.years_dir = os.path.join(base_path, "years")
         self.settings_file = os.path.join(base_path, "settings.json")
         self.auth_file = os.path.join(base_path, "auth.json")
+        self.admin_auth_file = os.path.join(base_path, "admin_auth.json")
 
         # Create directories if they don't exist
         os.makedirs(self.years_dir, exist_ok=True)
@@ -34,6 +35,13 @@ class FileStorageAdapter(StorageAdapter):
             self._write_json(self.auth_file, {
                 "username": "admin",
                 "passwordHash": hash_password("admin123")
+            })
+
+        if not os.path.exists(self.admin_auth_file):
+            # Default admin credentials: koladmin / koladmin
+            self._write_json(self.admin_auth_file, {
+                "username": "koladmin",
+                "password": "koladmin"  # Store plain text for simplicity since it's for internal admin use
             })
 
     def _read_json(self, file_path: str) -> any:
@@ -195,11 +203,64 @@ class FileStorageAdapter(StorageAdapter):
 
         return False
 
-    def set_opening_balance(self, year_key: str, member_id: str, classes: int) -> bool:
-        """Set opening balance for a member in a year"""
+    def set_opening_balance(self, year_key: str, member_id: str, classes: int, money_balance: float = 0.0) -> bool:
+        """Set opening balance for a member in a year
+
+        This calculates the required opening balance to achieve the desired current balance,
+        taking into account all existing transactions (packages, attendance, refunds).
+        """
         year_data = self.get_year_data(year_key)
         if not year_data:
             return False
+
+        # Calculate existing transactions
+        purchased = sum(
+            p["classCount"]
+            for p in year_data.get("packages", [])
+            if p["memberId"] == member_id
+        )
+
+        attended = sum(
+            1 for a in year_data.get("attendance", [])
+            if a["memberId"] == member_id
+        )
+
+        refunded_classes = sum(
+            r["classesRefunded"]
+            for r in year_data.get("refunds", [])
+            if r["memberId"] == member_id
+        )
+
+        money_paid = sum(
+            p.get("amountPaid", 0)
+            for p in year_data.get("packages", [])
+            if p["memberId"] == member_id
+        )
+
+        # Get price per class (simplified - use first package or default)
+        price_per_class = 45.0  # Default
+        member_packages = [p for p in year_data.get("packages", []) if p["memberId"] == member_id]
+        if member_packages:
+            pkg = member_packages[0]
+            if pkg.get("classCount", 0) > 0:
+                price_per_class = pkg["price"] / pkg["classCount"]
+
+        attendance_cost = attended * price_per_class
+
+        refunded_money = sum(
+            r.get("refundAmount", 0)
+            for r in year_data.get("refunds", [])
+            if r["memberId"] == member_id
+        )
+
+        # Calculate required opening balances to achieve desired current balances
+        # Formula: current = opening + purchased - attended - refunded
+        # Therefore: opening = current - purchased + attended + refunded
+        required_opening_classes = classes - purchased + attended + refunded_classes
+
+        # Formula: current_money = opening_money + money_paid - attendance_cost - refunded_money
+        # Therefore: opening_money = current_money - money_paid + attendance_cost + refunded_money
+        required_opening_money = money_balance - money_paid + attendance_cost + refunded_money
 
         balances = year_data.get("openingBalances", [])
 
@@ -207,12 +268,19 @@ class FileStorageAdapter(StorageAdapter):
         found = False
         for balance in balances:
             if balance["memberId"] == member_id:
-                balance["classes"] = classes
+                balance["classes"] = required_opening_classes
+                balance["classesRemaining"] = required_opening_classes
+                balance["moneyBalance"] = required_opening_money
                 found = True
                 break
 
         if not found:
-            balances.append({"memberId": member_id, "classes": classes})
+            balances.append({
+                "memberId": member_id,
+                "classes": required_opening_classes,
+                "classesRemaining": required_opening_classes,
+                "moneyBalance": required_opening_money
+            })
 
         year_data["openingBalances"] = balances
         self._write_json(self._get_year_file(year_key), year_data)
@@ -389,4 +457,25 @@ class FileStorageAdapter(StorageAdapter):
             "passwordHash": password_hash
         }
         self._write_json(self.auth_file, creds)
+        return True
+
+    # === Admin Auth ===
+    def get_admin_credentials(self) -> Dict:
+        """Get admin credentials for advanced settings access"""
+        creds = self._read_json(self.admin_auth_file)
+        if not creds:
+            creds = {
+                "username": "koladmin",
+                "password": "koladmin"
+            }
+            self._write_json(self.admin_auth_file, creds)
+        return creds
+
+    def update_admin_credentials(self, username: str, password: str) -> bool:
+        """Update admin credentials"""
+        creds = {
+            "username": username,
+            "password": password
+        }
+        self._write_json(self.admin_auth_file, creds)
         return True
