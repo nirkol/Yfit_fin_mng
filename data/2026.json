@@ -10,8 +10,7 @@
       "amountPaid": 500,
       "paymentMethod": "העברה בנקאית",
       "purchaseDate": "2026-03-27",
-      "createdAt": "2026-03-27T00:00:00Z",
-      "price": 500
+      "createdAt": "2026-03-27T00:00:00Z"
     },
     {
       "id": "pkg_0002",
@@ -22,8 +21,7 @@
       "amountPaid": 500,
       "paymentMethod": "ביט",
       "purchaseDate": "2026-01-24",
-      "createdAt": "2026-01-24T00:00:00Z",
-      "price": 500
+      "createdAt": "2026-01-24T00:00:00Z"
     },
     {
       "id": "pkg_0003",
@@ -34,8 +32,7 @@
       "amountPaid": 900,
       "paymentMethod": "מזומן",
       "purchaseDate": "2026-01-11",
-      "createdAt": "2026-01-11T00:00:00Z",
-      "price": 900
+      "createdAt": "2026-01-11T00:00:00Z"
     },
     {
       "id": "pkg_0004",
@@ -46,8 +43,7 @@
       "amountPaid": 900,
       "paymentMethod": "מזומן",
       "purchaseDate": "2026-03-22",
-      "createdAt": "2026-03-22T00:00:00Z",
-      "price": 900
+      "createdAt": "2026-03-22T00:00:00Z"
     },
     {
       "id": "pkg_0005",
@@ -58,8 +54,7 @@
       "amountPaid": 500,
       "paymentMethod": "ביט",
       "purchaseDate": "2026-03-08",
-      "createdAt": "2026-03-08T00:00:00Z",
-      "price": 500
+      "createdAt": "2026-03-08T00:00:00Z"
     },
     {
       "id": "pkg_0006",
@@ -70,8 +65,7 @@
       "amountPaid": 60,
       "paymentMethod": "אשראי",
       "purchaseDate": "2026-02-15",
-      "createdAt": "2026-02-15T00:00:00Z",
-      "price": 60
+      "createdAt": "2026-02-15T00:00:00Z"
     },
     {
       "id": "pkg_0007",
@@ -82,8 +76,7 @@
       "amountPaid": 500,
       "paymentMethod": "אשראי",
       "purchaseDate": "2026-02-27",
-      "createdAt": "2026-02-27T00:00:00Z",
-      "price": 500
+      "createdAt": "2026-02-27T00:00:00Z"
     },
     {
       "id": "pkg_0008",
@@ -94,8 +87,7 @@
       "amountPaid": 500,
       "paymentMethod": "מזומן",
       "purchaseDate": "2026-02-23",
-      "createdAt": "2026-02-23T00:00:00Z",
-      "price": 500
+      "createdAt": "2026-02-23T00:00:00Z"
     },
     {
       "id": "pkg_0009",
@@ -106,8 +98,7 @@
       "amountPaid": 900,
       "paymentMethod": "ביט",
       "purchaseDate": "2026-03-13",
-      "createdAt": "2026-03-13T00:00:00Z",
-      "price": 900
+      "createdAt": "2026-03-13T00:00:00Z"
     },
     {
       "id": "pkg_0010",
@@ -118,8 +109,7 @@
       "amountPaid": 900,
       "paymentMethod": "ביט",
       "purchaseDate": "2026-03-25",
-      "createdAt": "2026-03-25T00:00:00Z",
-      "price": 900
+      "createdAt": "2026-03-25T00:00:00Z"
     },
     {
       "id": "pkg_0011",
@@ -130,8 +120,7 @@
       "amountPaid": 600,
       "paymentMethod": "אשראי",
       "purchaseDate": "2026-03-19",
-      "createdAt": "2026-03-19T00:00:00Z",
-      "price": 600
+      "createdAt": "2026-03-19T00:00:00Z"
     },
     {
       "id": "pkg_0012",
@@ -142,8 +131,7 @@
       "amountPaid": 600,
       "paymentMethod": "מזומן",
       "purchaseDate": "2026-03-07",
-      "createdAt": "2026-03-07T00:00:00Z",
-      "price": 600
+      "createdAt": "2026-03-07T00:00:00Z"
     },
     {
       "id": "pkg_0013",
@@ -154,8 +142,7 @@
       "amountPaid": 900,
       "paymentMethod": "ביט",
       "purchaseDate": "2026-03-14",
-      "createdAt": "2026-03-14T00:00:00Z",
-      "price": 900
+      "createdAt": "2026-03-14T00:00:00Z"
     },
     {
       "id": "pkg_0014",
@@ -166,104 +153,7 @@
       "amountPaid": 500,
       "paymentMethod": "מזומן",
       "purchaseDate": "2026-02-17",
-      "createdAt": "2026-02-17T00:00:00Z",
-      "price": 500
-    },
-    {
-      "id": "1776198279064",
-      "yearKey": "2026",
-      "memberId": "member_002",
-      "packageType": "package1",
-      "price": 900.0,
-      "classCount": 20,
-      "amountPaid": 900.0,
-      "purchaseDate": "2026-04-14T00:00:00.000Z",
-      "paymentMethod": "מזומן",
-      "memberName": "שרה לוי"
-    },
-    {
-      "id": "1776280261916",
-      "yearKey": "2026",
-      "memberId": "member_002",
-      "packageType": "package3",
-      "price": 700.0,
-      "classCount": 20,
-      "amountPaid": 700.0,
-      "purchaseDate": "2026-04-15T00:00:00.000Z",
-      "paymentMethod": "מזומן",
-      "memberName": "שרה לוי"
-    },
-    {
-      "id": "1776280307003",
-      "yearKey": "2026",
-      "memberId": "member_003",
-      "packageType": "adhoc",
-      "price": 100.0,
-      "classCount": 2,
-      "amountPaid": 100.0,
-      "purchaseDate": "2026-04-15T00:00:00.000Z",
-      "paymentMethod": "מזומן",
-      "memberName": "יוסי מזרחי"
-    },
-    {
-      "id": "1776754272314",
-      "yearKey": "2026",
-      "memberId": "1776198986839",
-      "packageType": "package1",
-      "price": 900.0,
-      "classCount": 20,
-      "amountPaid": 900.0,
-      "purchaseDate": "2026-04-21T00:00:00.000Z",
-      "paymentMethod": "ביט",
-      "memberName": "tal kol"
-    },
-    {
-      "id": "1776754910481",
-      "yearKey": "2026",
-      "memberId": "member_008",
-      "packageType": "package2",
-      "price": 500.0,
-      "classCount": 10,
-      "amountPaid": 500.0,
-      "purchaseDate": "2026-04-21T00:00:00.000Z",
-      "paymentMethod": "אשראי",
-      "memberName": "נועה אוחנה"
-    },
-    {
-      "id": "1776755694064",
-      "yearKey": "2026",
-      "memberId": "member_007",
-      "packageType": "package3",
-      "price": 700.0,
-      "classCount": 20,
-      "amountPaid": 700.0,
-      "purchaseDate": "2026-04-21T00:00:00.000Z",
-      "paymentMethod": "מזומן",
-      "memberName": "עמית שלום"
-    },
-    {
-      "id": "1776756008368",
-      "yearKey": "2026",
-      "memberId": "1776198986839",
-      "packageType": "package1",
-      "price": 900.0,
-      "classCount": 20,
-      "amountPaid": 900.0,
-      "purchaseDate": "2026-04-21T00:00:00.000Z",
-      "paymentMethod": "ביט",
-      "memberName": "tal kol"
-    },
-    {
-      "id": "1776757022514",
-      "yearKey": "2026",
-      "memberId": "1776198986839",
-      "packageType": "package1",
-      "price": 900.0,
-      "classCount": 20,
-      "amountPaid": 900.0,
-      "purchaseDate": "2026-04-21T00:00:00.000Z",
-      "paymentMethod": "מזומן",
-      "memberName": "tal kol"
+      "createdAt": "2026-02-17T00:00:00Z"
     }
   ],
   "refunds": [],
@@ -1213,6 +1103,62 @@
       "createdAt": "2026-04-18T19:00:00Z"
     },
     {
+      "id": "att_00119",
+      "memberId": "member_005",
+      "memberName": "אבי ביטון",
+      "date": "2026-04-21",
+      "time": "19:00",
+      "createdAt": "2026-04-21T19:00:00Z"
+    },
+    {
+      "id": "att_00120",
+      "memberId": "member_001",
+      "memberName": "דוד כהן",
+      "date": "2026-04-21",
+      "time": "19:00",
+      "createdAt": "2026-04-21T19:00:00Z"
+    },
+    {
+      "id": "att_00121",
+      "memberId": "member_009",
+      "memberName": "תומר דהן",
+      "date": "2026-04-21",
+      "time": "19:00",
+      "createdAt": "2026-04-21T19:00:00Z"
+    },
+    {
+      "id": "att_00122",
+      "memberId": "member_007",
+      "memberName": "עמית שלום",
+      "date": "2026-04-21",
+      "time": "19:00",
+      "createdAt": "2026-04-21T19:00:00Z"
+    },
+    {
+      "id": "att_00123",
+      "memberId": "member_002",
+      "memberName": "שרה לוי",
+      "date": "2026-04-21",
+      "time": "19:00",
+      "createdAt": "2026-04-21T19:00:00Z"
+    },
+    {
+      "id": "att_00124",
+      "memberId": "member_003",
+      "memberName": "יוסי מזרחי",
+      "date": "2026-04-21",
+      "time": "19:00",
+      "createdAt": "2026-04-21T19:00:00Z"
+    },
+    {
+      "id": "att_00125",
+      "memberId": "member_008",
+      "memberName": "נועה אוחנה",
+      "date": "2026-04-21",
+      "time": "19:00",
+      "createdAt": "2026-04-21T19:00:00Z"
+    },
+    {
       "id": "att_00126",
       "memberId": "member_009",
       "memberName": "תומר דהן",
@@ -1243,287 +1189,6 @@
       "date": "2026-04-23",
       "time": "17:00",
       "createdAt": "2026-04-23T17:00:00Z"
-    },
-    {
-      "id": "1776197965503-member_005",
-      "yearKey": "2026",
-      "memberId": "member_005",
-      "memberName": "אבי ביטון",
-      "date": "2026-04-14T00:00:00.000Z",
-      "time": "18:00",
-      "dayOfWeek": "יום שלישי",
-      "classType": "regular"
-    },
-    {
-      "id": "1776197965503-member_004",
-      "yearKey": "2026",
-      "memberId": "member_004",
-      "memberName": "מיכל פרץ",
-      "date": "2026-04-14T00:00:00.000Z",
-      "time": "18:00",
-      "dayOfWeek": "יום שלישי",
-      "classType": "regular"
-    },
-    {
-      "id": "1776197965503-member_006",
-      "yearKey": "2026",
-      "memberId": "member_006",
-      "memberName": "רונית אברהם",
-      "date": "2026-04-14T00:00:00.000Z",
-      "time": "18:00",
-      "dayOfWeek": "יום שלישי",
-      "classType": "regular"
-    },
-    {
-      "id": "1776197965503-member_009",
-      "yearKey": "2026",
-      "memberId": "member_009",
-      "memberName": "תומר דהן",
-      "date": "2026-04-14T00:00:00.000Z",
-      "time": "18:00",
-      "dayOfWeek": "יום שלישי",
-      "classType": "regular"
-    },
-    {
-      "id": "1776278566322-member_005",
-      "yearKey": "2026",
-      "memberId": "member_005",
-      "memberName": "אבי ביטון",
-      "date": "2026-04-21T00:00:00.000Z",
-      "time": "19:00",
-      "dayOfWeek": "יום שלישי",
-      "classType": "regular"
-    },
-    {
-      "id": "1776278566322-member_001",
-      "yearKey": "2026",
-      "memberId": "member_001",
-      "memberName": "דוד כהן",
-      "date": "2026-04-21T00:00:00.000Z",
-      "time": "19:00",
-      "dayOfWeek": "יום שלישי",
-      "classType": "regular"
-    },
-    {
-      "id": "1776278566322-member_009",
-      "yearKey": "2026",
-      "memberId": "member_009",
-      "memberName": "תומר דהן",
-      "date": "2026-04-21T00:00:00.000Z",
-      "time": "19:00",
-      "dayOfWeek": "יום שלישי",
-      "classType": "regular"
-    },
-    {
-      "id": "1776278566322-member_007",
-      "yearKey": "2026",
-      "memberId": "member_007",
-      "memberName": "עמית שלום",
-      "date": "2026-04-21T00:00:00.000Z",
-      "time": "19:00",
-      "dayOfWeek": "יום שלישי",
-      "classType": "regular"
-    },
-    {
-      "id": "1776278566322-member_002",
-      "yearKey": "2026",
-      "memberId": "member_002",
-      "memberName": "שרה לוי",
-      "date": "2026-04-21T00:00:00.000Z",
-      "time": "19:00",
-      "dayOfWeek": "יום שלישי",
-      "classType": "regular"
-    },
-    {
-      "id": "1776278566322-member_003",
-      "yearKey": "2026",
-      "memberId": "member_003",
-      "memberName": "יוסי מזרחי",
-      "date": "2026-04-21T00:00:00.000Z",
-      "time": "19:00",
-      "dayOfWeek": "יום שלישי",
-      "classType": "regular"
-    },
-    {
-      "id": "1776279208088-member_005",
-      "yearKey": "2026",
-      "memberId": "member_005",
-      "memberName": "אבי ביטון",
-      "date": "2026-04-21",
-      "time": "19:00",
-      "dayOfWeek": "יום שלישי",
-      "classType": "regular"
-    },
-    {
-      "id": "1776279208088-member_001",
-      "yearKey": "2026",
-      "memberId": "member_001",
-      "memberName": "דוד כהן",
-      "date": "2026-04-21",
-      "time": "19:00",
-      "dayOfWeek": "יום שלישי",
-      "classType": "regular"
-    },
-    {
-      "id": "1776279208088-member_009",
-      "yearKey": "2026",
-      "memberId": "member_009",
-      "memberName": "תומר דהן",
-      "date": "2026-04-21",
-      "time": "19:00",
-      "dayOfWeek": "יום שלישי",
-      "classType": "regular"
-    },
-    {
-      "id": "1776279208088-member_007",
-      "yearKey": "2026",
-      "memberId": "member_007",
-      "memberName": "עמית שלום",
-      "date": "2026-04-21",
-      "time": "19:00",
-      "dayOfWeek": "יום שלישי",
-      "classType": "regular"
-    },
-    {
-      "id": "1776279208088-member_002",
-      "yearKey": "2026",
-      "memberId": "member_002",
-      "memberName": "שרה לוי",
-      "date": "2026-04-21",
-      "time": "19:00",
-      "dayOfWeek": "יום שלישי",
-      "classType": "regular"
-    },
-    {
-      "id": "1776279208088-member_003",
-      "yearKey": "2026",
-      "memberId": "member_003",
-      "memberName": "יוסי מזרחי",
-      "date": "2026-04-21",
-      "time": "19:00",
-      "dayOfWeek": "יום שלישי",
-      "classType": "regular"
-    },
-    {
-      "id": "1776452922292-member_002",
-      "yearKey": "2026",
-      "memberId": "member_002",
-      "memberName": "שרה לוי",
-      "date": "2027-01-02T00:00:00.000Z",
-      "time": "18:00",
-      "dayOfWeek": "שבת",
-      "classType": "regular"
-    },
-    {
-      "id": "1776452922292-member_003",
-      "yearKey": "2026",
-      "memberId": "member_003",
-      "memberName": "יוסי מזרחי",
-      "date": "2027-01-02T00:00:00.000Z",
-      "time": "18:00",
-      "dayOfWeek": "שבת",
-      "classType": "regular"
-    },
-    {
-      "id": "1776452922292-member_008",
-      "yearKey": "2026",
-      "memberId": "member_008",
-      "memberName": "נועה אוחנה",
-      "date": "2027-01-02T00:00:00.000Z",
-      "time": "18:00",
-      "dayOfWeek": "שבת",
-      "classType": "regular"
-    },
-    {
-      "id": "1776452922292-member_005",
-      "yearKey": "2026",
-      "memberId": "member_005",
-      "memberName": "אבי ביטון",
-      "date": "2027-01-02T00:00:00.000Z",
-      "time": "18:00",
-      "dayOfWeek": "שבת",
-      "classType": "regular"
-    },
-    {
-      "id": "1776452922292-member_007",
-      "yearKey": "2026",
-      "memberId": "member_007",
-      "memberName": "עמית שלום",
-      "date": "2027-01-02T00:00:00.000Z",
-      "time": "18:00",
-      "dayOfWeek": "שבת",
-      "classType": "regular"
-    },
-    {
-      "id": "1776452953539-member_005",
-      "yearKey": "2026",
-      "memberId": "member_005",
-      "memberName": "אבי ביטון",
-      "date": "2026-01-02T00:00:00.000Z",
-      "time": "18:00",
-      "dayOfWeek": "יום שישי",
-      "classType": "regular"
-    },
-    {
-      "id": "1776452953539-member_008",
-      "yearKey": "2026",
-      "memberId": "member_008",
-      "memberName": "נועה אוחנה",
-      "date": "2026-01-02T00:00:00.000Z",
-      "time": "18:00",
-      "dayOfWeek": "יום שישי",
-      "classType": "regular"
-    },
-    {
-      "id": "1776452953539-member_003",
-      "yearKey": "2026",
-      "memberId": "member_003",
-      "memberName": "יוסי מזרחי",
-      "date": "2026-01-02T00:00:00.000Z",
-      "time": "18:00",
-      "dayOfWeek": "יום שישי",
-      "classType": "regular"
-    },
-    {
-      "id": "1776452953539-member_007",
-      "yearKey": "2026",
-      "memberId": "member_007",
-      "memberName": "עמית שלום",
-      "date": "2026-01-02T00:00:00.000Z",
-      "time": "18:00",
-      "dayOfWeek": "יום שישי",
-      "classType": "regular"
-    },
-    {
-      "id": "1776452953539-member_004",
-      "yearKey": "2026",
-      "memberId": "member_004",
-      "memberName": "מיכל פרץ",
-      "date": "2026-01-02T00:00:00.000Z",
-      "time": "18:00",
-      "dayOfWeek": "יום שישי",
-      "classType": "regular"
-    }
-  ],
-  "yearKey": "2026",
-  "openingBalances": [
-    {
-      "memberId": "member_004",
-      "classes": 12,
-      "classesRemaining": 12,
-      "moneyBalance": 0.0
-    },
-    {
-      "memberId": "member_002",
-      "classes": 20,
-      "classesRemaining": 20,
-      "moneyBalance": 900.0
-    },
-    {
-      "memberId": "1776198986839",
-      "classes": -40,
-      "classesRemaining": -40,
-      "moneyBalance": -1800.02
     }
   ]
 }

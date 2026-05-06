@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>בחירת ערכת נושא - YFit Fin Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Heebo', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            color: white;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.25rem;
+            opacity: 0.95;
+            font-weight: 500;
+        }
+
+        .themes-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .theme-card {
+            background: white;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .theme-card:hover {
+            transform: translateY(-12px) scale(1.02);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+        }
+
+        .theme-preview {
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .theme-preview::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.1;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(0, 0, 0, 0.05) 10px,
+                rgba(0, 0, 0, 0.05) 20px
+            );
+        }
+
+        .theme1-preview {
+            background: linear-gradient(135deg, #6366F1 0%, #3B82F6 100%);
+        }
+
+        .theme2-preview {
+            background: #1E3A8A;
+        }
+
+        .theme3-preview {
+            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+        }
+
+        .theme-content {
+            padding: 2rem;
+            color: #1F2937;
+        }
+
+        .theme-content h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: #111827;
+        }
+
+        .theme-content p {
+            font-size: 1rem;
+            color: #6B7280;
+            margin-bottom: 1.25rem;
+            line-height: 1.6;
+        }
+
+        .theme-features {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .theme-features li {
+            padding: 0.5rem 0;
+            color: #374151;
+            font-size: 0.9375rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .theme-features li::before {
+            content: '✓';
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-weight: bold;
+            font-size: 0.875rem;
+        }
+
+        .theme1-preview + .theme-content .theme-features li::before {
+            background: linear-gradient(135deg, #6366F1 0%, #3B82F6 100%);
+            color: white;
+        }
+
+        .theme2-preview + .theme-content .theme-features li::before {
+            background: #1E3A8A;
+            color: white;
+        }
+
+        .theme3-preview + .theme-content .theme-features li::before {
+            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+            color: white;
+        }
+
+        .view-button {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1.0625rem;
+            font-weight: 700;
+            font-family: 'Heebo', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+        }
+
+        .theme1-button {
+            background: linear-gradient(135deg, #6366F1 0%, #3B82F6 100%);
+        }
+
+        .theme1-button:hover {
+            background: linear-gradient(135deg, #4F46E5 0%, #2563EB 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
+        }
+
+        .theme2-button {
+            background: #1E3A8A;
+        }
+
+        .theme2-button:hover {
+            background: #1E40AF;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(30, 58, 138, 0.3);
+        }
+
+        .theme3-button {
+            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+        }
+
+        .theme3-button:hover {
+            background: linear-gradient(135deg, #E55A2B 0%, #E08314 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3);
+        }
+
+        .instructions {
+            margin-top: 3rem;
+            text-align: center;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 1.5rem 2rem;
+            border-radius: 1rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .instructions h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+            font-weight: 700;
+        }
+
+        .instructions p {
+            font-size: 1rem;
+            line-height: 1.6;
+            opacity: 0.95;
+        }
+
+        .back-to-app {
+            margin-top: 2rem;
+            padding: 0.875rem 2rem;
+            background: rgba(255, 255, 255, 0.25);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 9999px;
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: all 0.3s;
+            display: inline-block;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-to-app:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎨 בחירת ערכת נושא</h1>
+        <p>בחר את עיצוב הממשק המועדף עליך למערכת YFit Fin Management</p>
+    </div>
+
+    <div class="themes-container">
+        <!-- Theme 1: Modern Gradient Pro -->
+        <a href="theme1-modern-gradient.html" class="theme-card">
+            <div class="theme-preview theme1-preview">
+                💎
+            </div>
+            <div class="theme-content">
+                <h2>Modern Gradient Pro</h2>
+                <p>עיצוב מודרני ומתוחכם עם גרדיאנטים של סגול וכחול</p>
+                <ul class="theme-features">
+                    <li>גרדיאנטים מרהיבים</li>
+                    <li>אפקט זכוכית בתפריט</li>
+                    <li>צללים רכים ומודרניים</li>
+                    <li>מתאים למשתמשים טכנולוגיים</li>
+                </ul>
+                <button class="view-button theme1-button">צפה בדוגמה</button>
+            </div>
+        </a>
+
+        <!-- Theme 2: Minimal Professional Clean -->
+        <a href="theme2-minimal-clean.html" class="theme-card">
+            <div class="theme-preview theme2-preview">
+                📊
+            </div>
+            <div class="theme-content">
+                <h2>Minimal Professional Clean</h2>
+                <p>עיצוב מינימליסטי ועסקי עם כחול כהה וקווים נקיים</p>
+                <ul class="theme-features">
+                    <li>צבעים שטוחים ונקיים</li>
+                    <li>ממוקד בנתונים וביצועים</li>
+                    <li>מראה עסקי ומקצועי</li>
+                    <li>מתאים לסביבות תאגידיות</li>
+                </ul>
+                <button class="view-button theme2-button">צפה בדוגמה</button>
+            </div>
+        </a>
+
+        <!-- Theme 3: Vibrant Energetic Fitness -->
+        <a href="theme3-vibrant-fitness.html" class="theme-card">
+            <div class="theme-preview theme3-preview">
+                🏋️
+            </div>
+            <div class="theme-content">
+                <h2>Vibrant Energetic Fitness</h2>
+                <p>עיצוב תוסס ואנרגטי עם כתום חשמלי וצבעים חזקים</p>
+                <ul class="theme-features">
+                    <li>צבעים תוססים ואנרגטיים</li>
+                    <li>אנימציות מהנות</li>
+                    <li>מוטיבציה ואנרגיה</li>
+                    <li>מתאים לסטודיו כושר צעיר</li>
+                </ul>
+                <button class="view-button theme3-button">צפה בדוגמה</button>
+            </div>
+        </a>
+    </div>
+
+    <div class="instructions">
+        <h3>📋 הוראות שימוש</h3>
+        <p>לחץ על כל כרטיס כדי לראות את העיצוב המלא בדשבורד הפיננסי. נווט בין הדפים, בדוק את הצבעים, הגופנים והאנימציות. לאחר שתבחר את העיצוב המועדף, אודיע לי ואני אטמיע אותו באפליקציה המלאה! 🎨</p>
+    </div>
+
+    <a href="http://localhost:5173" class="back-to-app">← חזור לאפליקציה הראשית</a>
+</body>
+</html>

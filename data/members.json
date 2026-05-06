@@ -1,101 +1,82 @@
 [
   {
+    "id": "member_001",
     "name": "דוד כהן",
     "phone": "059-6761916",
     "dateOfBirth": "2006-04-19",
-    "isArchived": true,
-    "createdAt": "2026-01-01T10:00:00Z",
-    "memberId": 1,
-    "id": "member_001"
+    "isArchived": false,
+    "createdAt": "2026-01-01T10:00:00Z"
   },
   {
+    "id": "member_002",
     "name": "שרה לוי",
     "phone": "057-9871394",
     "dateOfBirth": "2000-04-20",
     "isArchived": false,
-    "createdAt": "2026-01-01T10:00:00Z",
-    "memberId": 2,
-    "id": "member_002"
+    "createdAt": "2026-01-01T10:00:00Z"
   },
   {
+    "id": "member_003",
     "name": "יוסי מזרחי",
     "phone": "057-2034517",
     "dateOfBirth": "2000-04-20",
     "isArchived": false,
-    "createdAt": "2026-01-01T10:00:00Z",
-    "memberId": 3,
-    "id": "member_003"
+    "createdAt": "2026-01-01T10:00:00Z"
   },
   {
+    "id": "member_004",
     "name": "מיכל פרץ",
     "phone": "055-2168110",
     "dateOfBirth": "1980-04-25",
     "isArchived": false,
-    "createdAt": "2026-01-01T10:00:00Z",
-    "memberId": 4,
-    "id": "member_004"
+    "createdAt": "2026-01-01T10:00:00Z"
   },
   {
+    "id": "member_005",
     "name": "אבי ביטון",
     "phone": "051-3144860",
     "dateOfBirth": "2005-04-19",
     "isArchived": false,
-    "createdAt": "2026-01-01T10:00:00Z",
-    "memberId": 5,
-    "id": "member_005"
+    "createdAt": "2026-01-01T10:00:00Z"
   },
   {
+    "id": "member_006",
     "name": "רונית אברהם",
     "phone": "051-5037520",
     "dateOfBirth": "1988-04-23",
     "isArchived": false,
-    "createdAt": "2026-01-01T10:00:00Z",
-    "memberId": 6,
-    "id": "member_006"
+    "createdAt": "2026-01-01T10:00:00Z"
   },
   {
+    "id": "member_007",
     "name": "עמית שלום",
     "phone": "052-2346242",
     "dateOfBirth": "1997-04-21",
     "isArchived": false,
-    "createdAt": "2026-01-01T10:00:00Z",
-    "memberId": 7,
-    "id": "member_007"
+    "createdAt": "2026-01-01T10:00:00Z"
   },
   {
+    "id": "member_008",
     "name": "נועה אוחנה",
     "phone": "057-4217521",
     "dateOfBirth": "1992-04-22",
     "isArchived": false,
-    "createdAt": "2026-01-01T10:00:00Z",
-    "memberId": 8,
-    "id": "member_008"
+    "createdAt": "2026-01-01T10:00:00Z"
   },
   {
+    "id": "member_009",
     "name": "תומר דהן",
     "phone": "059-2238526",
     "dateOfBirth": "1986-04-24",
-    "isArchived": true,
-    "createdAt": "2026-01-01T10:00:00Z",
-    "memberId": 9,
-    "id": "member_009"
+    "isArchived": false,
+    "createdAt": "2026-01-01T10:00:00Z"
   },
   {
+    "id": "member_010",
     "name": "ליאת אזולאי",
     "phone": "052-8308829",
     "dateOfBirth": "1985-04-24",
-    "isArchived": true,
-    "createdAt": "2026-01-01T10:00:00Z",
-    "memberId": 10,
-    "id": "member_010"
-  },
-  {
-    "id": "1776198986839",
-    "memberId": 11,
-    "createdAt": "2026-04-14T23:36:26.840245",
-    "name": "tal kol",
-    "phone": "5555555",
-    "dateOfBirth": "2026-04-17",
-    "isArchived": false
+    "isArchived": false,
+    "createdAt": "2026-01-01T10:00:00Z"
   }
 ]

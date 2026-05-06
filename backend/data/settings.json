@@ -2,23 +2,23 @@
   "package1": {
     "name": "כרטיסיה 20",
     "classCount": 20,
-    "price": 900
+    "price": 900.0
   },
   "package2": {
     "name": "כרטיסיה 10",
     "classCount": 10,
-    "price": 500
+    "price": 500.0
   },
   "package3": {
     "name": "נוער 20",
     "classCount": 20,
-    "price": 700
+    "price": 700.0
   },
   "package4": {
     "name": "נוער 10",
     "classCount": 10,
-    "price": 400
+    "price": 400.0
   },
-  "yearlyTaxCap": null,
-  "updatedAt": "2026-04-13T22:50:47.248333"
+  "yearlyTaxCap": 10000.0,
+  "updatedAt": "2026-04-17T21:41:09.837987"
 }

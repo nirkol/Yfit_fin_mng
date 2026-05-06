@@ -60,28 +60,72 @@ The application solves the following business challenges for fitness studio owne
 
 **Core Capabilities (11 Application Pages):**
 1. **Authentication** - Secure login/logout with credential management
-2. **Finance Dashboard** - Primary dashboard with earnings, debt analysis, payment tracking
-3. **Attendance Dashboard** - Analytics for class attendance patterns and trends
-4. **Member Management** - CRUD operations, search, archive, member detail views
-5. **Attendance Marking** - Record class attendance with debt warnings
-6. **Class Calendar** - Monthly view of classes with attendee lists
-7. **Package Sales** - Sell 4 configurable packages + custom packages
-8. **Transaction History** - Complete audit trail with running totals
+2. **Finance Dashboard** - Primary dashboard with 5 financial stat cards, 4 charts, debt tracking, payment method analysis
+3. **Attendance Dashboard** - Secondary dashboard with 6 attendance stat cards, 2 charts, top attendees analytics
+4. **Member Management** - CRUD operations, search, archive, member detail views with "Add Member" button
+5. **Attendance Marking** - Record class attendance with debt warnings and upcoming birthdays sidebar
+6. **Class Calendar** - Monthly view of classes with attendee lists and edit functionality
+7. **Package Sales** - Sell 4 configurable packages + custom packages with 5 package type buttons
+8. **Transaction History** - Complete audit trail with running totals and export functionality
 9. **Settings & Admin** - Configure pricing, manage years, credentials, data import/export
 10. **Automated Backups** - Weekly and monthly automated backups
 11. **Email Reports** - Weekly comprehensive email reports
 
 **Advanced Features:**
-- Dual dashboards (finance + attendance analytics)
-- 4 standard package types + ad-hoc custom packages
-- Year-based data isolation with automatic carry-over
-- Year locking (current year editable, previous year only in January)
-- Automated debt calculations and warnings
-- Payment method tracking
-- Member birthday tracking
-- Refund processing with automatic amount calculation
-- Export/import functionality for data portability
-- Tax cap tracking for financial reporting
+- **Dual Dashboards** with dedicated navigation items:
+  - **Finance Dashboard** - Primary dashboard with comprehensive financial analytics
+  - **Attendance Dashboard** - Secondary dashboard with attendance pattern analytics
+- **Finance Dashboard Components:**
+  - 5 financial stat cards (Money Received, Packages Sold, Avg/Month, Total Debt, Members with Debt)
+  - 4 interactive charts:
+    - Monthly Earnings Bar Chart (revenue by month)
+    - Cumulative Earnings Line Chart (running total with tax cap line if set)
+    - Payment Method Distribution Chart (Pie/Bar chart)
+    - Package Type Distribution Chart (Pie/Bar chart showing sales by package type)
+  - Members with debt table (expandable from top 5 to all)
+  - Recent refunds list (top 5, expandable)
+  - Complete transaction history (collapsible section with running totals)
+- **Attendance Dashboard Components:**
+  - 6 attendance stat cards (Active Members, Total Classes, Total Attendees, Avg/Class, Avg/Month, Packages Sold)
+  - 2 comprehensive charts:
+    - Monthly Attendees Bar Chart (total attendance by month)
+    - Unique Members per Month Chart (Line/Bar chart showing distinct members)
+  - Top 20 attendees list with ranking (#1, #2, #3 with medals)
+- **Side Navigation Bar** (always visible on desktop):
+  - Header section with year selector dropdown
+  - "Read-Only" badge displayed when viewing locked years
+  - Dashboards group (Finance Dashboard, Attendance Dashboard)
+  - Main operations group (Members with "Add Member" button, Attendance, Monthly Classes, Packages)
+  - Settings & Logout section at bottom
+- **Upcoming Birthdays Sidebar** on Attendance Marking page:
+  - Shows next 10 upcoming birthdays
+  - Countdown display ("In X days")
+  - Today's birthdays highlighted in gold with "היום!" (Today!) badge
+  - This week's birthdays shown in bold
+  - Sticky sidebar on desktop (right side)
+- **Member Management Features:**
+  - "Add Member" button prominently displayed at top of Members page
+  - Search functionality with real-time filtering
+  - Archive/Active toggle filter
+  - Status indicators (Active/In Debt/No Classes/Archived)
+- **Package Sales System:**
+  - 5 package type buttons in grid layout:
+    - Ad-Hoc Package (Custom amount and quantity) - Purple
+    - Package 1 (Standard 20) - Blue with "Best Value" badge
+    - Package 2 (Standard 10) - Cyan
+    - Package 3 (Youth 20) - Orange
+    - Package 4 (Youth 10) - Yellow
+  - Transaction summary card showing before/after balance
+  - Payment method dropdown with 6 options
+- Year-based data isolation with automatic carry-over of closing balances
+- Year locking (current year editable, previous year only in January) with visual warnings
+- Automated debt calculations with price-per-class based on most recent package
+- Debt warnings when marking attendance for members with negative balance
+- Payment method tracking and distribution visualization
+- Member birthday tracking with age calculation ignoring birth year
+- Refund processing with automatic amount calculation (full remaining balance)
+- Export/import functionality for complete data portability
+- Tax cap tracking for financial reporting with visual red line on cumulative earnings chart
 
 ### 1.5 Technology Stack
 
@@ -752,56 +796,88 @@ AuthCredentials (1) - Single admin
 
 ### 3.1 Navigation System
 
-The application uses a **sidebar navigation** for desktop and a **bottom navigation bar** for mobile devices.
+The application uses a **persistent sidebar navigation** for desktop and a **bottom navigation bar** for mobile devices. This is a core UI component that appears on every page (except login).
 
 #### Desktop Sidebar Navigation
 
 **Location:** Fixed left sidebar (width: 256px)
-**Behavior:** Always visible, collapsible to icon-only mode
+**Behavior:** Always visible on all pages (except login), collapsible to icon-only mode
+**Background:** Dark gradient or solid color for visual separation
+**Sticky:** Yes, stays visible when scrolling
 
-**Navigation Structure:**
+**Visual Representation:**
 
 ```
 ┌─────────────────────────────┐
-│  YFit Fin Logo              │
-│  [Year Selector ▼]          │
-│  [Read-Only Badge] (if locked)│
+│  🏋️ YFit Fin Logo          │  ← Branding/Logo
+│  [2026 ▼]                   │  ← Year Selector Dropdown
+│  [🔒 Read-Only]            │  ← Badge (if year locked)
 ├─────────────────────────────┤
-│  DASHBOARDS                 │
-│  💰 Finance Dashboard       │
-│  📊 Attendance Dashboard    │
+│  📊 DASHBOARDS              │  ← Section Header
+│  💰 Finance Dashboard       │  ← Primary Dashboard
+│  📈 Attendance Dashboard    │  ← Analytics Dashboard
 ├─────────────────────────────┤
-│  MAIN OPERATIONS            │
-│  👥 Members                 │
-│  ✓  Attendance              │
-│  📅 Monthly Classes         │
-│  📦 Packages                │
+│  🎯 MAIN OPERATIONS         │  ← Section Header
+│  👥 Members                 │  ← Member Management
+│  ✓  Attendance              │  ← Mark Attendance
+│  📅 Monthly Classes         │  ← Class Calendar
+│  📦 Packages                │  ← Sell Packages
 ├─────────────────────────────┤
-│  ⚙️  Settings               │
-│  🚪 Logout                  │
+│  ⚙️  Settings               │  ← Admin Settings
+│  🚪 Logout                  │  ← Logout Button
 └─────────────────────────────┘
 ```
 
 **Navigation Groups:**
 
-1. **Header Section:**
-  - YFit Fin branding/logo
-  - Year selector dropdown (shows all available years)
-  - "Read-Only" badge (displayed when viewing locked years)
+1. **Header Section (Always Visible):**
+  - YFit Fin branding/logo with icon
+  - **Year selector dropdown** - Shows all available years (2026, 2025, 2024, etc.)
+    - Clicking opens dropdown to switch between years
+    - Selected year highlighted
+    - Current year marked with badge
+  - **"Read-Only" badge** - Displayed when viewing locked years (previous years not in January)
+    - Yellow/Orange background
+    - Lock icon
+    - Tooltip: "This year is locked for editing"
 
 2. **Dashboards Group:**
-  - Finance Dashboard (`/finance`) - DollarSign icon
-  - Attendance Dashboard (`/attendance-dashboard`) - TrendingUp icon
+  - **Finance Dashboard** (`/finance`)
+    - Icon: DollarSign (💰)
+    - Label: "דשבורד פיננסי"
+    - Primary dashboard - default landing page
+  - **Attendance Dashboard** (`/attendance-dashboard`)
+    - Icon: TrendingUp (📈)
+    - Label: "דשבורד נוכחות"
+    - Analytics and attendance patterns
 
 3. **Main Operations Group:**
-  - Members (`/members`) - Users icon
-  - Attendance (`/attendance`) - ClipboardCheck icon
-  - Monthly Classes (`/classes`) - CalendarDays icon
-  - Packages (`/package`) - Package icon
+  - **Members** (`/members`)
+    - Icon: Users (👥)
+    - Label: "חברים"
+    - Access to member list and management
+  - **Attendance** (`/attendance`)
+    - Icon: ClipboardCheck (✓)
+    - Label: "נוכחות"
+    - Mark class attendance
+  - **Monthly Classes** (`/classes`)
+    - Icon: CalendarDays (📅)
+    - Label: "כיתות חודשיות"
+    - View class calendar
+  - **Packages** (`/package`)
+    - Icon: Package (📦)
+    - Label: "מכירת כרטיסיות"
+    - Sell packages to members
 
 4. **Settings & Logout:**
-  - Settings (`/settings`) - Settings icon
-  - Logout Button - LogOut icon
+  - **Settings** (`/settings`)
+    - Icon: Settings (⚙️)
+    - Label: "הגדרות"
+    - Admin configuration
+  - **Logout Button**
+    - Icon: LogOut (🚪)
+    - Label: "יציאה"
+    - Click to logout with confirmation
 
 #### Mobile Bottom Navigation
 
@@ -1554,24 +1630,41 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 #### 6.1.1 Page Header
 
 **Title:** "חברים" (Members)
+**Font:** Large, bold heading
 
-**Action Buttons:**
-- **Add Member Button**
-  - Text: "+ הוסף חבר" (Add Member)
-  - Color: Primary (Blue)
-  - Action: Opens Add Member modal
+**Action Buttons Section:**
 
-**Search & Filter Bar:**
+**Primary Button: "Add Member" (Prominent Display)**
+- **Position:** Top-right of page header, highly visible
+- **Text:** "+ הוסף חבר" (Add Member in Hebrew)
+- **Icon:** UserPlus icon
+- **Style:**
+  - Primary color (Blue)
+  - Large size (height: 44px)
+  - Bold text
+  - Hover effect with slight lift
+- **Action:** Opens Add Member modal dialog
+- **Keyboard Shortcut:** Ctrl/Cmd + N (optional)
+- **Visibility:** Always visible, enabled at all times
+
+**Search & Filter Bar (Below Header):**
 - **Search Box**
+  - Position: Left side
   - Placeholder: "חפש חבר..." (Search member...)
-  - Icon: Search
+  - Icon: Search icon (magnifying glass)
   - Behavior: Real-time filtering by member name
-  - Debounce: 300ms
+  - Debounce: 300ms for performance
+  - Width: 300px minimum
 
 - **Archive Toggle**
-  - Options: "פעילים" (Active) / "ארכיון" (Archived)
-  - Default: Active
-  - Action: Filters table to show active or archived members
+  - Position: Right side, next to search
+  - Type: Button group / Segmented control
+  - Options:
+    - "פעילים" (Active) - Default selected
+    - "ארכיון" (Archived)
+  - Style: Toggle buttons with active state highlighting
+  - Action: Filters table to show active or archived members only
+  - Count badges: Shows count of active/archived members
 
 ---
 
@@ -7549,7 +7642,7 @@ if balance != 0:
 - API keys
 - Cron secrets
 
-**Use ****`.gitignore`****:**
+**Use \****`.gitignore`**\*\*:**
 ```
 .env
 .env.local

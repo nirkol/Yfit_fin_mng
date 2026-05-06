@@ -8,7 +8,9 @@
       "Bash(curl -s http://localhost:8000/)",
       "Bash(python3 -m json.tool)",
       "Bash(npm create:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(curl -s http://localhost:8000/api/years/2026)",
+      "Bash(find /Users/i807291/Library/CloudStorage/OneDrive-SAPSE/Documents/Dev/Yfit_fin_mng/frontend/src -name *.module.css -o -name *.module.scss)"
     ]
   }
 }

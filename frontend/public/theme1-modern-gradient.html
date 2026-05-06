@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme 1: Modern Gradient Pro - YFit Fin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&family=Assistant:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --color-primary: #6366F1;
+            --color-primary-light: #818CF8;
+            --color-primary-dark: #4F46E5;
+            --color-secondary: #14B8A6;
+            --color-success: #10B981;
+            --color-warning: #F59E0B;
+            --color-danger: #EF4444;
+            --color-background: #F9FAFB;
+            --color-card: #FFFFFF;
+            --color-text: #1F2937;
+            --color-text-secondary: #6B7280;
+        }
+
+        body {
+            font-family: 'Assistant', sans-serif;
+            background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+            color: var(--color-text);
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Heebo', sans-serif;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar with Gradient */
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(180deg, #6366F1 0%, #3B82F6 100%);
+            color: white;
+            box-shadow: 4px 0 20px rgba(99, 102, 241, 0.15);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .year-selector {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .year-selector label {
+            display: block;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.9;
+        }
+
+        .year-selector select {
+            width: 100%;
+            padding: 0.625rem;
+            border-radius: 0.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 0.875rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .year-selector select option {
+            background: var(--color-card);
+            color: var(--color-text);
+        }
+
+        .nav-section {
+            padding: 1rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .nav-section h2 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            opacity: 0.7;
+            margin-bottom: 0.75rem;
+            padding: 0 0.5rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.25rem;
+            border-radius: 0.75rem;
+            transition: all 0.3s;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #6366F1 0%, #3B82F6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header p {
+            color: var(--color-text-secondary);
+        }
+
+        /* Stat Cards with Gradient Borders */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--color-card);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-top: 3px solid transparent;
+            background-image: linear-gradient(white, white), linear-gradient(135deg, #6366F1, #3B82F6);
+            background-origin: padding-box, border-box;
+            background-clip: padding-box, border-box;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(99, 102, 241, 0.2);
+        }
+
+        .stat-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 0.75rem;
+            background: linear-gradient(135deg, #6366F1 0%, #3B82F6 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-text);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--color-text-secondary);
+        }
+
+        /* Chart Container */
+        .chart-container {
+            background: var(--color-card);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+        }
+
+        .chart-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-header h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .chart-placeholder {
+            height: 300px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%);
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-text-secondary);
+            font-style: italic;
+        }
+
+        /* Theme Badge */
+        .theme-badge {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: linear-gradient(135deg, #6366F1 0%, #3B82F6 100%);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 9999px;
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+            font-weight: 600;
+            font-size: 0.875rem;
+            z-index: 1000;
+        }
+
+        /* Back Button */
+        .back-button {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            background: white;
+            color: var(--color-primary);
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>YFit Fin Management</h1>
+            </div>
+
+            <div class="year-selector">
+                <label>בחר שנה:</label>
+                <select>
+                    <option>2026</option>
+                    <option>2025</option>
+                    <option>2024</option>
+                </select>
+            </div>
+
+            <div class="nav-section">
+                <h2>דשבורדים</h2>
+                <div class="nav-item active">
+                    <span>💰</span>
+                    <span>פיננסי</span>
+                </div>
+                <div class="nav-item">
+                    <span>📈</span>
+                    <span>נוכחות</span>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <h2>תפריט</h2>
+                <div class="nav-item">
+                    <span>👥</span>
+                    <span>מתאמנים</span>
+                </div>
+                <div class="nav-item">
+                    <span>📅</span>
+                    <span>סימון נוכחות</span>
+                </div>
+                <div class="nav-item">
+                    <span>📅</span>
+                    <span>היסטוריית שיעורים</span>
+                </div>
+                <div class="nav-item">
+                    <span>📦</span>
+                    <span>מכירת כרטיסיות</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1>דשבורד פיננסי</h1>
+                <p>שנה: 2026</p>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-icon">💰</div>
+                    </div>
+                    <div class="stat-value">₪25,500</div>
+                    <div class="stat-label">כסף שהתקבל</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-icon">📦</div>
+                    </div>
+                    <div class="stat-value">35</div>
+                    <div class="stat-label">כרטיסיות שנמכרו</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-icon">📊</div>
+                    </div>
+                    <div class="stat-value">₪6,375</div>
+                    <div class="stat-label">ממוצע לחודש</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%)">⚠️</div>
+                    </div>
+                    <div class="stat-value" style="color: #EF4444;">₪1,250</div>
+                    <div class="stat-label">חובות כוללים</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%)">👥</div>
+                    </div>
+                    <div class="stat-value">5</div>
+                    <div class="stat-label">חברים בחוב</div>
+                </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h3>הכנסות לפי חודש</h3>
+                </div>
+                <div class="chart-placeholder">
+                    📊 תרשים עם גרדיאנטים וצבעים מודרניים
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h3>הכנסות מצטברות</h3>
+                </div>
+                <div class="chart-placeholder">
+                    📈 תרשים קווי עם גרדיאנט וקו תקרת מס אדום
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Theme Badge -->
+    <div class="theme-badge">
+        🎨 Theme 1: Modern Gradient Pro
+    </div>
+
+    <!-- Back Button -->
+    <a href="theme-selector.html" class="back-button">
+        ← חזור לבחירת ערכות נושא
+    </a>
+</body>
+</html>

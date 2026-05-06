@@ -14,12 +14,12 @@ limiter = Limiter(key_func=get_remote_address)
 
 @router.post("/login", response_model=LoginResponse)
 @limiter.limit("5/minute")  # Max 5 login attempts per minute per IP
-async def login(request: LoginRequest, http_request: Request):
+async def login(login_request: LoginRequest, request: Request):
     """Login endpoint with rate limiting"""
     storage = get_storage()
     auth_service = AuthService(storage)
 
-    if not auth_service.authenticate(request.username, request.password):
+    if not auth_service.authenticate(login_request.username, login_request.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password"
@@ -27,7 +27,7 @@ async def login(request: LoginRequest, http_request: Request):
 
     # Create access token
     access_token = create_access_token(
-        data={"sub": request.username},
+        data={"sub": login_request.username},
         expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     )
 
