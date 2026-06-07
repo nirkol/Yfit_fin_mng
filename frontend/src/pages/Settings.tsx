@@ -6,10 +6,11 @@ import { settingsService } from '../services/settingsService';
 import { authService } from '../services/authService';
 import { yearService } from '../services/yearService';
 import { memberService } from '../services/memberService';
+import { trainerService } from '../services/trainerService';
 import { reportService } from '../services/reportService';
 import { systemService } from '../services/systemService';
 import type { Settings, PackageConfig, MemberWithBalance } from '../types';
-import { Save, Download, Upload, Key, Package as PackageIcon, FileText, Calendar, Users, Shield, FolderOpen, Trash2 } from 'lucide-react';
+import { Save, Download, Upload, Key, Package as PackageIcon, FileText, Calendar, Users, Shield, FolderOpen, Trash2, UserCircle } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import { validateIntegerInput, validateNumericInput, validatePasswordInput } from '../utils/validation';
 
@@ -63,6 +64,15 @@ export default function SettingsPage() {
   const [editedClassBalance, setEditedClassBalance] = useState<number>(0);
   const [editedMoneyBalance, setEditedMoneyBalance] = useState<number>(0);
   const [savingBalance, setSavingBalance] = useState(false);
+
+  // Trainer credentials section
+  const [showTrainerCredentials, setShowTrainerCredentials] = useState(false);
+  const [trainers, setTrainers] = useState<any[]>([]);
+  const [selectedTrainer, setSelectedTrainer] = useState<any | null>(null);
+  const [trainerUsername, setTrainerUsername] = useState('');
+  const [trainerPassword, setTrainerPassword] = useState('');
+  const [trainerSearchTerm, setTrainerSearchTerm] = useState('');
+  const [savingTrainer, setSavingTrainer] = useState(false);
 
   // Reports section
   const [showReportsModal, setShowReportsModal] = useState(false);
@@ -125,7 +135,12 @@ export default function SettingsPage() {
     }
 
     try {
-      await authService.updateCredentials(currentPassword, newUsername, newPassword);
+      // If admin is authenticated, skip current password validation
+      if (adminAuthenticated) {
+        await authService.updateCredentials('', newUsername, newPassword);
+      } else {
+        await authService.updateCredentials(currentPassword, newUsername, newPassword);
+      }
       alert('פרטי התחברות עודכנו בהצלחה! יש להתחבר מחדש.');
       logout();
       navigate('/login');
@@ -225,6 +240,11 @@ export default function SettingsPage() {
     setShowMemberBalanceEdit(true);
   };
 
+  const handleOpenTrainerCredentials = async () => {
+    await loadTrainers();
+    setShowTrainerCredentials(true);
+  };
+
   const handleAdminAuth = async () => {
     try {
       const result = await systemService.authenticateAdmin(adminUsername.trim(), adminPassword.trim());
@@ -314,6 +334,60 @@ export default function SettingsPage() {
       alert('שגיאה בעדכון יתרת מתאמן');
     } finally {
       setSavingBalance(false);
+    }
+  };
+
+  // Trainer credentials functions
+  const loadTrainers = async () => {
+    try {
+      const data = await trainerService.getTrainers();
+      setTrainers(data);
+    } catch (error) {
+      console.error('Failed to load trainers:', error);
+      alert('שגיאה בטעינת מאמנים');
+    }
+  };
+
+  const handleSelectTrainer = (trainer: any) => {
+    setSelectedTrainer(trainer);
+    setTrainerUsername(trainer.username);
+    setTrainerPassword('');
+  };
+
+  const handleSaveTrainerCredentials = async () => {
+    if (!selectedTrainer) return;
+
+    if (!trainerUsername.trim()) {
+      alert('נא להזין שם משתמש');
+      return;
+    }
+
+    if (trainerPassword && trainerPassword.length < 4) {
+      alert('הסיסמה חייבת להיות לפחות 4 תווים');
+      return;
+    }
+
+    try {
+      setSavingTrainer(true);
+
+      await trainerService.updateCredentials(
+        selectedTrainer.id,
+        trainerUsername,
+        trainerPassword || selectedTrainer.username // If no password, keep username same
+      );
+
+      alert('פרטי המאמן עודכנו בהצלחה!');
+
+      // Reload trainers
+      await loadTrainers();
+      setSelectedTrainer(null);
+      setTrainerUsername('');
+      setTrainerPassword('');
+    } catch (error: any) {
+      console.error('Failed to update trainer credentials:', error);
+      alert(error.response?.data?.detail || 'שגיאה בעדכון פרטי מאמן');
+    } finally {
+      setSavingTrainer(false);
     }
   };
 
@@ -1196,115 +1270,155 @@ export default function SettingsPage() {
           )}
 
           {showAdvancedAdmin && adminAuthenticated && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Admin Password Change */}
-              <div className="bg-white rounded-lg shadow p-6 border-2 border-orange-200">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                  <Key className="w-5 h-5 text-orange-600" />
-                  שינוי סיסמת מנהל
-                </h2>
+            <>
+              {/* First Row: Admin Password + Advanced User Management */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                {/* Admin Password Change */}
+                <div className="bg-white rounded-lg shadow p-6 border-2 border-orange-200">
+                  <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <Key className="w-5 h-5 text-orange-600" />
+                    שינוי סיסמת אדמין
+                  </h2>
 
-                {!showAdminPasswordChange ? (
-                  <button
-                    onClick={() => setShowAdminPasswordChange(true)}
-                    className="w-full px-4 py-3 border-2 border-orange-600 text-orange-600 rounded-lg hover:bg-orange-50 transition font-medium"
-                  >
-                    שנה שם משתמש/סיסמה מנהל
-                  </button>
-                ) : (
-                  <form onSubmit={handleChangeAdminPassword} className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        שם משתמש מנהל חדש *
-                      </label>
-                      <input
-                        type="text"
-                        value={newAdminUsername}
-                        onChange={(e) => setNewAdminUsername(validatePasswordInput(e.target.value))}
-                        className="w-full px-4 py-2 border rounded-lg"
-                        required
-                      />
-                    </div>
+                  {!showAdminPasswordChange ? (
+                    <button
+                      onClick={() => setShowAdminPasswordChange(true)}
+                      className="w-full px-4 py-3 border-2 border-orange-600 text-orange-600 rounded-lg hover:bg-orange-50 transition font-medium"
+                    >
+                      שנה שם משתמש/סיסמה מנהל
+                    </button>
+                  ) : (
+                    <form onSubmit={handleChangeAdminPassword} className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          שם משתמש מנהל חדש *
+                        </label>
+                        <input
+                          type="text"
+                          value={newAdminUsername}
+                          onChange={(e) => setNewAdminUsername(validatePasswordInput(e.target.value))}
+                          className="w-full px-4 py-2 border rounded-lg"
+                          required
+                        />
+                      </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        סיסמת מנהל חדשה *
-                      </label>
-                      <input
-                        type="password"
-                        value={newAdminPassword}
-                        onChange={(e) => setNewAdminPassword(validatePasswordInput(e.target.value))}
-                        className="w-full px-4 py-2 border rounded-lg"
-                        required
-                        minLength={6}
-                      />
-                    </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          סיסמת מנהל חדשה *
+                        </label>
+                        <input
+                          type="password"
+                          value={newAdminPassword}
+                          onChange={(e) => setNewAdminPassword(validatePasswordInput(e.target.value))}
+                          className="w-full px-4 py-2 border rounded-lg"
+                          required
+                          minLength={6}
+                        />
+                      </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        אימות סיסמה *
-                      </label>
-                      <input
-                        type="password"
-                        value={confirmNewAdminPassword}
-                        onChange={(e) => setConfirmNewAdminPassword(validatePasswordInput(e.target.value))}
-                        className="w-full px-4 py-2 border rounded-lg"
-                        required
-                      />
-                    </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          אימות סיסמה *
+                        </label>
+                        <input
+                          type="password"
+                          value={confirmNewAdminPassword}
+                          onChange={(e) => setConfirmNewAdminPassword(validatePasswordInput(e.target.value))}
+                          className="w-full px-4 py-2 border rounded-lg"
+                          required
+                        />
+                      </div>
 
-                    <div className="flex flex-col gap-2">
-                      <button
-                        type="submit"
-                        className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 rounded-lg transition"
-                      >
-                        עדכן והתנתק
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowAdminPasswordChange(false);
-                          setNewAdminUsername('koladmin');
-                          setNewAdminPassword('');
-                          setConfirmNewAdminPassword('');
-                        }}
-                        className="w-full px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
-                      >
-                        ביטול
-                      </button>
-                    </div>
-                  </form>
-                )}
+                      <div className="flex flex-col gap-2">
+                        <button
+                          type="submit"
+                          className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 rounded-lg transition"
+                        >
+                          עדכן והתנתק
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowAdminPasswordChange(false);
+                            setNewAdminUsername('koladmin');
+                            setNewAdminPassword('');
+                            setConfirmNewAdminPassword('');
+                          }}
+                          className="w-full px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                        >
+                          ביטול
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+
+                {/* Advanced User Management */}
+                <div className="bg-white rounded-lg shadow p-6 border-2 border-purple-200">
+                  <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <Users className="w-5 h-5 text-purple-600" />
+                    ניהול משתמשים מתקדם
+                  </h2>
+
+                  <div className="space-y-3">
+                    <button
+                      onClick={handleOpenMemberBalanceEdit}
+                      className="w-full px-4 py-3 border-2 border-purple-600 text-purple-600 rounded-lg hover:bg-purple-50 transition font-medium flex items-center justify-center gap-2"
+                    >
+                      <Users className="w-5 h-5" />
+                      עריכה ידנית של יתרות
+                    </button>
+                    <p className="text-xs text-gray-600 text-center">
+                      עדכן ידנית יתרות שיעורים של מתאמנים
+                    </p>
+                  </div>
+                </div>
               </div>
 
-              {/* System Login Credentials */}
-              <div className="bg-white rounded-lg shadow p-6 border-2 border-blue-200">
+              {/* Second Row: System Login + Data Management */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* System Login Credentials */}
+                <div className="bg-white rounded-lg shadow p-6 border-2 border-blue-200">
                 <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                   <Key className="w-5 h-5 text-blue-600" />
                   פרטי התחברות למערכת
                 </h2>
 
                 {!showPasswordForm ? (
-                  <button
-                    onClick={() => setShowPasswordForm(true)}
-                    className="w-full px-4 py-3 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition font-medium"
-                  >
-                    שנה שם משתמש/סיסמה למערכת
-                  </button>
+                  <div className="space-y-3">
+                    <button
+                      onClick={() => setShowPasswordForm(true)}
+                      className="w-full px-4 py-3 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition font-medium"
+                    >
+                      שנה שם משתמש/סיסמה למערכת
+                    </button>
+                    <button
+                      onClick={handleOpenTrainerCredentials}
+                      className="w-full px-4 py-3 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition font-medium flex items-center justify-center gap-2"
+                    >
+                      <UserCircle className="w-5 h-5" />
+                      ניהול פרטי מאמנים
+                    </button>
+                    <p className="text-xs text-gray-600 text-center">
+                      עדכן שם משתמש וסיסמה של מאמנים
+                    </p>
+                  </div>
                 ) : (
                   <form onSubmit={handleChangePassword} className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        סיסמה נוכחית *
-                      </label>
-                      <input
-                        type="password"
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(validatePasswordInput(e.target.value))}
-                        className="w-full px-4 py-2 border rounded-lg"
-                        required
-                      />
-                    </div>
+                    {!adminAuthenticated && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          סיסמה נוכחית *
+                        </label>
+                        <input
+                          type="password"
+                          value={currentPassword}
+                          onChange={(e) => setCurrentPassword(validatePasswordInput(e.target.value))}
+                          className="w-full px-4 py-2 border rounded-lg"
+                          required
+                        />
+                      </div>
+                    )}
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1423,28 +1537,8 @@ export default function SettingsPage() {
                   </div>
                 </div>
               </div>
-
-              {/* Advanced User Management */}
-              <div className="bg-white rounded-lg shadow p-6 border-2 border-purple-200">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                  <Users className="w-5 h-5 text-purple-600" />
-                  ניהול משתמשים מתקדם
-                </h2>
-
-                <div className="space-y-3">
-                  <button
-                    onClick={handleOpenMemberBalanceEdit}
-                    className="w-full px-4 py-3 border-2 border-purple-600 text-purple-600 rounded-lg hover:bg-purple-50 transition font-medium flex items-center justify-center gap-2"
-                  >
-                    <Users className="w-5 h-5" />
-                    עריכה ידנית של יתרות
-                  </button>
-                  <p className="text-xs text-gray-600 text-center">
-                    עדכן ידנית יתרות שיעורים של מתאמנים
-                  </p>
-                </div>
               </div>
-            </div>
+            </>
           )}
         </div>
         </div>
@@ -1806,6 +1900,152 @@ export default function SettingsPage() {
                 <Save className="w-5 h-5" />
                 הורד ושמור
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Trainer Credentials Modal */}
+      {showTrainerCredentials && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" dir="rtl">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b bg-blue-50">
+              <div>
+                <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                  <UserCircle className="w-6 h-6 text-blue-600" />
+                  ניהול פרטי מאמנים
+                </h3>
+                <p className="text-sm text-gray-600 mt-1">עדכן שם משתמש וסיסמה למאמנים</p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowTrainerCredentials(false);
+                  setSelectedTrainer(null);
+                  setTrainerUsername('');
+                  setTrainerPassword('');
+                  setTrainerSearchTerm('');
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg transition"
+              >
+                <span className="text-2xl">×</span>
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-hidden flex">
+              {/* Left: Trainer List */}
+              <div className="w-1/3 border-l p-4 overflow-y-auto">
+                <div className="mb-4">
+                  <input
+                    type="text"
+                    placeholder="חפש מאמן..."
+                    value={trainerSearchTerm}
+                    onChange={(e) => setTrainerSearchTerm(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  {trainers
+                    .filter(t => t.name.toLowerCase().includes(trainerSearchTerm.toLowerCase()))
+                    .map((trainer) => (
+                      <button
+                        key={trainer.id}
+                        onClick={() => handleSelectTrainer(trainer)}
+                        className={`w-full text-right p-3 rounded-lg transition ${
+                          selectedTrainer?.id === trainer.id
+                            ? 'bg-blue-100 border-2 border-blue-600'
+                            : 'bg-gray-50 hover:bg-gray-100 border-2 border-transparent'
+                        }`}
+                      >
+                        <div className="font-medium text-gray-900">{trainer.name}</div>
+                        <div className="text-sm text-gray-600">{trainer.username}</div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {trainer.role === 'admin' ? 'מנהל' : 'מאמן'} • {trainer.isActive ? 'פעיל' : 'לא פעיל'}
+                        </div>
+                      </button>
+                    ))}
+                </div>
+              </div>
+
+              {/* Right: Edit Form */}
+              <div className="flex-1 p-6 overflow-y-auto">
+                {selectedTrainer ? (
+                  <div className="space-y-6">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h4 className="font-semibold text-gray-800 mb-2">מאמן נבחר</h4>
+                      <p className="text-lg font-bold text-blue-900">{selectedTrainer.name}</p>
+                      <p className="text-sm text-gray-600">
+                        {selectedTrainer.role === 'admin' ? 'מנהל' : 'מאמן'}
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        שם משתמש *
+                      </label>
+                      <input
+                        type="text"
+                        value={trainerUsername}
+                        onChange={(e) => setTrainerUsername(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                        placeholder="שם משתמש חדש"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        שם המשתמש הנוכחי: <span className="font-medium">{selectedTrainer.username}</span>
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        סיסמה חדשה
+                      </label>
+                      <input
+                        type="password"
+                        value={trainerPassword}
+                        onChange={(e) => setTrainerPassword(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                        placeholder="השאר ריק אם לא לשנות"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        השאר ריק כדי לשמור את הסיסמה הקיימת
+                      </p>
+                    </div>
+
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <p className="text-sm text-yellow-800">
+                        ⚠️ <strong>שים לב:</strong> לאחר שינוי פרטי ההתחברות, המאמן יצטרך להתחבר מחדש עם הפרטים החדשים.
+                      </p>
+                    </div>
+
+                    <div className="flex gap-3 pt-4">
+                      <button
+                        onClick={handleSaveTrainerCredentials}
+                        disabled={savingTrainer || !trainerUsername.trim()}
+                        className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {savingTrainer ? 'שומר...' : 'שמור שינויים'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedTrainer(null);
+                          setTrainerUsername('');
+                          setTrainerPassword('');
+                        }}
+                        className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                      >
+                        ביטול
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                    <UserCircle className="w-16 h-16 mb-4 text-gray-300" />
+                    <p className="text-lg">בחר מאמן מהרשימה כדי לערוך את פרטיו</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

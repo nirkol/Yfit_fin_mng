@@ -4,7 +4,7 @@ from collections import defaultdict
 from typing import List, Dict
 from app.schemas.dashboard import (
     DashboardResponse, FinancialStats, AttendanceStats,
-    MonthlyData, PaymentMethodData, PackageDistData, DebtMember, TopAttendee
+    MonthlyData, PaymentMethodData, PackageDistData, DebtMember, TopAttendee, TopTrainer
 )
 from app.services.member_service import MemberService
 from app.services.calculation_service import calculate_member_balance, get_price_per_class, calculate_debt
@@ -178,6 +178,26 @@ async def get_dashboard(
                 attendanceCount=count
             ))
 
+    # Top trainers
+    trainer_stats_map = defaultdict(lambda: {"classes": set(), "participants": 0})
+    for record in attendance_records:
+        trainer_id = record.get("trainerId")
+        if trainer_id:
+            class_key = (record.get("date"), record.get("time"))
+            trainer_stats_map[trainer_id]["classes"].add(class_key)
+            trainer_stats_map[trainer_id]["participants"] += 1
+
+    top_trainers = []
+    for trainer_id, stats in sorted(trainer_stats_map.items(), key=lambda x: len(x[1]["classes"]), reverse=True)[:10]:
+        trainer = storage.get_trainer(trainer_id)
+        if trainer:
+            top_trainers.append(TopTrainer(
+                trainerId=trainer_id,
+                trainerName=trainer["name"],
+                classesCount=len(stats["classes"]),
+                participantsCount=stats["participants"]
+            ))
+
     return DashboardResponse(
         financial=FinancialStats(
             totalRevenue=total_revenue,
@@ -201,6 +221,7 @@ async def get_dashboard(
             avgAttendeesPerClass=avg_attendees_per_class,
             avgAttendeesPerMonth=avg_attendees_per_month,
             monthlyAttendees=monthly_attendees,
-            topAttendees=top_attendees
+            topAttendees=top_attendees,
+            topTrainers=top_trainers
         )
     )

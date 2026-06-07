@@ -33,6 +33,13 @@ class TopAttendee(BaseModel):
     attendanceCount: int
 
 
+class TopTrainer(BaseModel):
+    trainerId: str
+    trainerName: str
+    classesCount: int
+    participantsCount: int
+
+
 class FinancialStats(BaseModel):
     totalRevenue: float
     totalRefunds: float
@@ -57,6 +64,7 @@ class AttendanceStats(BaseModel):
     avgAttendeesPerMonth: float
     monthlyAttendees: List[MonthlyData]
     topAttendees: List[TopAttendee]
+    topTrainers: List[TopTrainer]
 
 
 class DashboardResponse(BaseModel):

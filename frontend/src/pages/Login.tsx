@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useYear } from '../contexts/YearContext';
 import { validatePasswordInput } from '../utils/validation';
 
 export default function Login() {
@@ -9,6 +10,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
+  const { refreshYears } = useYear();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -16,12 +18,24 @@ export default function Login() {
     setError('');
     setLoading(true);
 
-    const success = await login(username, password);
+    try {
+      const success = await login(username, password);
 
-    if (success) {
-      navigate('/finance');
-    } else {
-      setError('שם משתמש או סיסמה שגויים');
+      if (success) {
+        // Refresh years after successful login
+        await refreshYears();
+
+        // Small delay to ensure state updates before navigation
+        setTimeout(() => {
+          navigate('/finance', { replace: true });
+        }, 100);
+      } else {
+        setError('שם משתמש או סיסמה שגויים');
+        setLoading(false);
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('שגיאה בהתחברות');
       setLoading(false);
     }
   };

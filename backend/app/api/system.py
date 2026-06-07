@@ -59,25 +59,23 @@ async def reset_all_data(current_user: dict = Depends(get_current_user)):
     """
     Reset all system data - delete all members, years, packages, attendance, refunds.
     This is a destructive operation that cannot be undone.
+    Keeps trainers and settings intact.
     """
     storage = get_storage()
 
     try:
-        # Reset members
-        storage.data['members'] = []
-        storage.data['member_counter'] = 0
+        success = storage.reset_all_data()
 
-        # Reset years
-        storage.data['years'] = {}
-
-        # Save the reset data
-        storage._save_members()
-        storage._save_years()
-
-        return {
-            "success": True,
-            "message": "All data has been reset successfully"
-        }
+        if success:
+            return {
+                "success": True,
+                "message": "All data has been reset successfully"
+            }
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to reset data"
+            )
     except Exception as e:
         raise HTTPException(
             status_code=500,

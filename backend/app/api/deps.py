@@ -1,4 +1,4 @@
-from fastapi import Header, HTTPException, status
+from fastapi import Header, HTTPException, status, Depends
 from typing import Optional
 from app.utils.auth import verify_token
 from app.config import settings
@@ -52,3 +52,13 @@ async def get_current_user(authorization: Optional[str] = Header(None)) -> dict:
         )
 
     return payload
+
+
+async def require_admin(current_user: dict = Depends(get_current_user)) -> dict:
+    """Require admin role"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required"
+        )
+    return current_user

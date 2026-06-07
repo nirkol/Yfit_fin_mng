@@ -10,6 +10,7 @@ class FileStorageAdapter(StorageAdapter):
     def __init__(self, base_path: str = "./data"):
         self.base_path = base_path
         self.members_file = os.path.join(base_path, "members.json")
+        self.trainers_file = os.path.join(base_path, "trainers.json")
         self.years_dir = os.path.join(base_path, "years")
         self.settings_file = os.path.join(base_path, "settings.json")
         self.auth_file = os.path.join(base_path, "auth.json")
@@ -26,11 +27,26 @@ class FileStorageAdapter(StorageAdapter):
         if not os.path.exists(self.members_file):
             self._write_json(self.members_file, [])
 
+        if not os.path.exists(self.trainers_file):
+            # Initialize with default admin trainer
+            from app.utils.auth import hash_password
+            self._write_json(self.trainers_file, [{
+                "id": "trainer_001",
+                "name": "יפעת קול",
+                "phone": "",
+                "dateOfBirth": "",
+                "username": "yifatkol",
+                "passwordHash": hash_password("1111"),
+                "role": "admin",
+                "isActive": True,
+                "createdAt": datetime.now().isoformat()
+            }])
+
         if not os.path.exists(self.settings_file):
             self._write_json(self.settings_file, self._default_settings())
 
         if not os.path.exists(self.auth_file):
-            # Default credentials: admin / admin123
+            # Default credentials: admin / admin123 (deprecated - use trainers.json)
             from app.utils.auth import hash_password
             self._write_json(self.auth_file, {
                 "username": "admin",
@@ -79,7 +95,7 @@ class FileStorageAdapter(StorageAdapter):
             "package2": {"name": "כרטיסיה 10", "classCount": 10, "price": 500},
             "package3": {"name": "נוער 20", "classCount": 20, "price": 700},
             "package4": {"name": "נוער 10", "classCount": 10, "price": 400},
-            "yearlyTaxCap": None,
+            "yearlyTaxCap": 120000,
             "updatedAt": datetime.now().isoformat()
         }
 
@@ -156,6 +172,70 @@ class FileStorageAdapter(StorageAdapter):
             return 1
         return max(m.get("memberId", 0) for m in members) + 1
 
+    # === Trainers ===
+    def get_trainers(self, active_only: Optional[bool] = None) -> List[Dict]:
+        """Get all trainers, optionally filtered by active status"""
+        trainers = self._read_json(self.trainers_file) or []
+        if active_only is not None:
+            return [t for t in trainers if t.get("isActive", True) == active_only]
+        return trainers
+
+    def get_trainer(self, trainer_id: str) -> Optional[Dict]:
+        """Get a single trainer by ID"""
+        trainers = self._read_json(self.trainers_file) or []
+        for trainer in trainers:
+            if trainer["id"] == trainer_id:
+                return trainer
+        return None
+
+    def get_trainer_by_username(self, username: str) -> Optional[Dict]:
+        """Get a trainer by username (for authentication)"""
+        trainers = self._read_json(self.trainers_file) or []
+        for trainer in trainers:
+            if trainer["username"] == username:
+                return trainer
+        return None
+
+    def create_trainer(self, data: Dict) -> Dict:
+        """Create a new trainer"""
+        trainers = self._read_json(self.trainers_file) or []
+
+        trainer = {
+            "id": f"trainer_{self._generate_id()}",
+            "createdAt": datetime.now().isoformat(),
+            "isActive": True,
+            **data
+        }
+
+        trainers.append(trainer)
+        self._write_json(self.trainers_file, trainers)
+        return trainer
+
+    def update_trainer(self, trainer_id: str, data: Dict) -> Optional[Dict]:
+        """Update an existing trainer"""
+        trainers = self._read_json(self.trainers_file) or []
+
+        for i, trainer in enumerate(trainers):
+            if trainer["id"] == trainer_id:
+                trainers[i] = {**trainer, **data}
+                self._write_json(self.trainers_file, trainers)
+                return trainers[i]
+
+        return None
+
+    def delete_trainer(self, trainer_id: str) -> bool:
+        """Delete a trainer"""
+        trainers = self._read_json(self.trainers_file) or []
+
+        original_len = len(trainers)
+        trainers = [t for t in trainers if t["id"] != trainer_id]
+
+        if len(trainers) < original_len:
+            self._write_json(self.trainers_file, trainers)
+            return True
+
+        return False
+
     # === Years ===
     def get_years(self) -> List[Dict]:
         """Get all years"""
@@ -176,6 +256,11 @@ class FileStorageAdapter(StorageAdapter):
         if not os.path.exists(year_file):
             return None
         return self._read_json(year_file)
+
+    def save_year_data(self, year_key: str, year_data: Dict) -> None:
+        """Save year data"""
+        year_file = self._get_year_file(year_key)
+        self._write_json(year_file, year_data)
 
     def create_year(self, year_key: str, opening_balances: List[Dict]) -> Dict:
         """Create a new year with opening balances"""
@@ -479,3 +564,28 @@ class FileStorageAdapter(StorageAdapter):
         }
         self._write_json(self.admin_auth_file, creds)
         return True
+
+    # === System ===
+    def reset_all_data(self) -> bool:
+        """Reset all system data - delete all members, years, packages, attendance"""
+        try:
+            # Reset members
+            self._write_json(self.members_file, [])
+
+            # Delete all year files
+            import glob
+            year_files = glob.glob(os.path.join(self.years_dir, "*.json"))
+            for year_file in year_files:
+                # Skip backup files
+                if ".backup_" not in year_file:
+                    os.remove(year_file)
+                    # Also remove lock file if exists
+                    lock_file = f"{year_file}.lock"
+                    if os.path.exists(lock_file):
+                        os.remove(lock_file)
+
+            # Keep trainers and settings - only reset transactional data
+            return True
+        except Exception as e:
+            print(f"Error resetting data: {e}")
+            return False

@@ -21,10 +21,15 @@ export function YearProvider({ children }: { children: ReactNode }) {
     try {
       const years = await yearService.getYears();
       const yearKeys = years.map((y) => y.yearKey);
-      setAvailableYears(yearKeys);
 
-      // Always prioritize current year if it exists
+      // Always include current year if not present
       const currentYearKey = getCurrentYear();
+      if (!yearKeys.includes(currentYearKey)) {
+        yearKeys.push(currentYearKey);
+        yearKeys.sort().reverse(); // Sort descending (newest first)
+      }
+
+      setAvailableYears(yearKeys);
 
       if (yearKeys.includes(currentYearKey)) {
         // If current year exists, always select it
@@ -35,14 +40,39 @@ export function YearProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error('Failed to fetch years:', error);
+      // Fallback to current year if API fails
+      const currentYearKey = getCurrentYear();
+      setAvailableYears([currentYearKey]);
+      setSelectedYear(currentYearKey);
     }
   };
 
   useEffect(() => {
     // Only fetch years if we have a token (user is authenticated)
-    if (localStorage.getItem('authToken')) {
+    const token = localStorage.getItem('authToken');
+    if (token) {
       refreshYears();
     }
+  }, []);
+
+  // Also refresh when auth token changes (on login/logout)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        refreshYears();
+      } else {
+        // Clear years on logout
+        setAvailableYears([]);
+      }
+    };
+
+    // Listen for storage events
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   return (

@@ -4,7 +4,7 @@ import { useYear } from '../contexts/YearContext';
 import { memberService } from '../services/memberService';
 import { yearService } from '../services/yearService';
 import type { Member } from '../types';
-import { Edit, Archive, Package, Users as UsersIcon, DollarSign, ArrowRight, Trash2, RotateCcw } from 'lucide-react';
+import { Edit, Archive, Package, Users as UsersIcon, DollarSign, ArrowRight, Trash2, RotateCcw, ShoppingCart } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import { validateTextInput, validatePhoneInput } from '../utils/validation';
 
@@ -115,11 +115,11 @@ export default function MemberDetail() {
 
   const handleRefund = async () => {
     if (!member || balance <= 0) {
-      alert('אין יתרה להחזר');
+      alert('אין יתרה ל-Refund');
       return;
     }
 
-    if (!confirm(`האם להחזיר ${balance} שיעורים ל${member.name}?\n\nפעולה זו תיצור רשומת החזר ותעדכן את היתרה ל-0.`)) {
+    if (!confirm(`האם להחזיר ${balance} שיעורים ל${member.name}?\n\nפעולה זו תיצור רשומת Refund ותעדכן את היתרה ל-0.`)) {
       return;
     }
 
@@ -136,7 +136,7 @@ export default function MemberDetail() {
         memberName: member.name,
         amount: refundAmount,
         classesRefunded: balance,
-        reason: 'החזר יתרת שיעורים',
+        reason: 'Refund יתרת שיעורים',
         refundMethod: 'מזומן',
         refundDate: new Date().toISOString().split('T')[0],
       };
@@ -144,11 +144,11 @@ export default function MemberDetail() {
       // TODO: Call refund API endpoint
       // await refundService.createRefund(selectedYear, refundData);
 
-      alert(`החזר של ${balance} שיעורים (${refundAmount} ₪) נוצר בהצלחה`);
+      alert(`Refund של ${balance} שיעורים (${refundAmount} ₪) נוצר בהצלחה`);
       loadMemberData();
     } catch (error) {
       console.error('Failed to create refund:', error);
-      alert('שגיאה ביצירת החזר');
+      alert('שגיאה ביצירת Refund');
     }
   };
 
@@ -206,6 +206,14 @@ export default function MemberDetail() {
             {/* Action Bar */}
             <div className="flex gap-2">
               <button
+                onClick={() => navigate(`/package?memberId=${member.id}&memberName=${encodeURIComponent(member.name)}`)}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition flex items-center gap-2"
+                title="מכירת כרטיסייה חדשה"
+              >
+                <ShoppingCart className="w-4 h-4" />
+                <span>כרטיסייה חדשה</span>
+              </button>
+              <button
                 onClick={handleEdit}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
                 title="עריכת פרטים"
@@ -221,10 +229,10 @@ export default function MemberDetail() {
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : 'bg-green-600 text-white hover:bg-green-700'
                 }`}
-                title={balance <= 0 ? 'אין יתרה להחזר' : 'החזר יתרה'}
+                title={balance <= 0 ? 'אין יתרה ל-Refund' : 'Refund יתרה'}
               >
                 <RotateCcw className="w-4 h-4" />
-                <span>החזר</span>
+                <span>Refund</span>
               </button>
               <button
                 onClick={handleArchive}
@@ -329,6 +337,7 @@ export default function MemberDetail() {
                     <th className="px-4 py-2 text-right text-xs font-medium text-gray-500">תאריך</th>
                     <th className="px-4 py-2 text-right text-xs font-medium text-gray-500">שעה</th>
                     <th className="px-4 py-2 text-right text-xs font-medium text-gray-500">יום</th>
+                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500">סטטוס</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -337,6 +346,13 @@ export default function MemberDetail() {
                       <td className="px-4 py-3">{new Date(att.date).toLocaleDateString('he-IL')}</td>
                       <td className="px-4 py-3">{att.time}</td>
                       <td className="px-4 py-3">{att.dayOfWeek}</td>
+                      <td className="px-4 py-3">
+                        {att.isNoShow && (
+                          <span className="inline-block text-xs bg-orange-500 text-white px-2 py-1 rounded-full font-semibold">
+                            No-Show
+                          </span>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -350,7 +366,7 @@ export default function MemberDetail() {
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
               <DollarSign className="w-5 h-5" />
-              החזרים ({refunds.length})
+              Refunds ({refunds.length})
             </h3>
             <div className="overflow-x-auto">
               <table className="w-full">

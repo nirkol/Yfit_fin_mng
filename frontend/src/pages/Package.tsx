@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useYear } from '../contexts/YearContext';
 import { memberService } from '../services/memberService';
 import { yearService } from '../services/yearService';
@@ -13,6 +13,7 @@ import { getCurrentDate } from '../utils/testMode';
 
 export default function PackageSales() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { selectedYear } = useYear();
   const isEditable = useYearEditable(selectedYear);
   const [members, setMembers] = useState<Member[]>([]);
@@ -34,6 +35,17 @@ export default function PackageSales() {
   useEffect(() => {
     loadData();
   }, []);
+
+  // Pre-select member from URL parameters
+  useEffect(() => {
+    const memberId = searchParams.get('memberId');
+    const memberName = searchParams.get('memberName');
+
+    if (memberId && memberName) {
+      setSelectedMember(memberId);
+      setMemberSearchTerm(decodeURIComponent(memberName));
+    }
+  }, [searchParams, members]);
 
   useEffect(() => {
     // Close dropdown when clicking outside
@@ -288,7 +300,6 @@ export default function PackageSales() {
                 onChange={(e) => setPaymentMethod(e.target.value)}
                 className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
               >
-                <option value="מזומן">מזומן</option>
                 <option value="Paybox">Paybox</option>
                 <option value="העברה בנקאית">העברה בנקאית</option>
                 <option value="ביט">ביט</option>

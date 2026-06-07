@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useYear } from '../contexts/YearContext';
+import { useAuth } from '../contexts/AuthContext';
 import { yearService } from '../services/yearService';
-import type { MemberWithBalance } from '../types';
+import { trainerService } from '../services/trainerService';
+import type { MemberWithBalance, Trainer } from '../types';
 import { Check, Users, AlertTriangle, PartyPopper, Cake, Lock } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import { validateTimeInput } from '../utils/validation';
@@ -12,8 +14,10 @@ import { getCurrentDate } from '../utils/testMode';
 export default function Attendance() {
   const navigate = useNavigate();
   const { selectedYear } = useYear();
+  const { userRole, trainerId, userName } = useAuth();
   const isEditable = useYearEditable(selectedYear);
   const [members, setMembers] = useState<MemberWithBalance[]>([]);
+  const [trainers, setTrainers] = useState<Trainer[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -21,11 +25,27 @@ export default function Attendance() {
   const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
   const [date, setDate] = useState(getCurrentDate().toISOString().split('T')[0]);
   const [time, setTime] = useState('18:00');
+  const [selectedTrainerId, setSelectedTrainerId] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     loadMembers();
+    loadTrainers();
   }, [selectedYear]);
+
+  useEffect(() => {
+    // Set default trainer based on role
+    if (trainers.length > 0) {
+      if (userRole === 'trainer' && trainerId) {
+        // Trainer: auto-select themselves
+        setSelectedTrainerId(trainerId);
+      } else if (userRole === 'admin') {
+        // Admin: default to יפעת קול or first trainer
+        const defaultTrainer = trainers.find(t => t.name === 'יפעת קול') || trainers[0];
+        setSelectedTrainerId(defaultTrainer?.id || '');
+      }
+    }
+  }, [trainers, userRole, trainerId]);
 
   const loadMembers = async () => {
     try {
@@ -39,6 +59,15 @@ export default function Attendance() {
       alert('שגיאה בטעינת מתאמנים');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadTrainers = async () => {
+    try {
+      const data = await trainerService.getTrainers(true); // Only active trainers
+      setTrainers(data);
+    } catch (error) {
+      console.error('Failed to load trainers:', error);
     }
   };
 
@@ -57,6 +86,18 @@ export default function Attendance() {
 
     if (selectedMembers.size === 0) {
       alert('בחר לפחות חבר אחד');
+      return;
+    }
+
+    if (!selectedTrainerId) {
+      alert('נא לבחור מאמן');
+      return;
+    }
+
+    // Find trainer name
+    const selectedTrainer = trainers.find(t => t.id === selectedTrainerId);
+    if (!selectedTrainer) {
+      alert('מאמן לא נמצא');
       return;
     }
 
@@ -96,14 +137,18 @@ export default function Attendance() {
         date: new Date(date).toISOString(),
         time: time,
         memberIds: Array.from(selectedMembers),
-        classType: 'regular'
+        classType: 'regular',
+        trainerId: selectedTrainerId,
+        trainerName: selectedTrainer.name
       });
 
       alert(`נוכחות נרשמה בהצלחה עבור ${selectedMembers.size} מתאמנים!`);
 
       // Reset selection
       setSelectedMembers(new Set());
-      loadMembers(); // Reload to update balances
+
+      // Navigate to class history
+      navigate('/classes');
     } catch (error) {
       console.error('Failed to mark attendance:', error);
       alert('שגיאה ברישום נוכחות');
@@ -226,6 +271,26 @@ export default function Attendance() {
 
                 <div className="flex-1 min-w-[180px]">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
+                    מאמן *
+                  </label>
+                  <select
+                    value={selectedTrainerId}
+                    onChange={(e) => setSelectedTrainerId(e.target.value)}
+                    disabled={userRole === 'trainer'}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none disabled:bg-gray-100"
+                    required
+                  >
+                    <option value="">בחר מאמן</option>
+                    {trainers.map((trainer) => (
+                      <option key={trainer.id} value={trainer.id}>
+                        {trainer.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex-1 min-w-[180px]">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     משתתפים נבחרו
                   </label>
                   <div className="px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-center font-bold text-blue-600 text-lg">
@@ -235,7 +300,7 @@ export default function Attendance() {
 
                 <button
                   type="submit"
-                  disabled={submitting || selectedMembers.size === 0 || !isEditable}
+                  disabled={submitting || selectedMembers.size === 0 || !isEditable || !selectedTrainerId}
                   className="px-8 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   <Check className="w-5 h-5" />

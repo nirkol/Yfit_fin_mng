@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { YearProvider } from './contexts/YearContext';
 import AuthGuard from './components/AuthGuard';
+import { AdminGuard } from './components/RoleGuard';
 import Login from './pages/Login';
 import Finance from './pages/Finance';
 import Members from './pages/Members';
@@ -12,6 +13,7 @@ import Attendance from './pages/Attendance';
 import AttendanceDashboard from './pages/AttendanceDashboard';
 import ClassHistory from './pages/ClassHistory';
 import Settings from './pages/Settings';
+import Trainers from './pages/Trainers';
 
 function App() {
   return (
@@ -57,6 +59,16 @@ function App() {
               element={
                 <AuthGuard>
                   <Package />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/trainers"
+              element={
+                <AuthGuard>
+                  <AdminGuard>
+                    <Trainers />
+                  </AdminGuard>
                 </AuthGuard>
               }
             />

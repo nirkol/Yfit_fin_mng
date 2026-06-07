@@ -46,6 +46,38 @@ export interface AttendanceRecord {
   dayOfWeek?: string;
   classType?: string;
   yearKey: string;
+  trainerId?: string;
+  trainerName?: string;
+  isNoShow?: boolean;
+}
+
+// Trainer types
+export interface Trainer {
+  id: string;
+  name: string;
+  phone?: string;
+  dateOfBirth?: string;
+  username: string;
+  role: 'admin' | 'trainer';
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface TrainerStats {
+  totalClasses: number;
+  totalParticipants: number;
+  monthlyStats: {
+    month: string;
+    classes: number;
+    participants: number;
+  }[];
+}
+
+export interface TopTrainer {
+  trainerId: string;
+  trainerName: string;
+  classesCount: number;
+  participantsCount: number;
 }
 
 // Refund types
@@ -122,6 +154,7 @@ export interface AttendanceStats {
   avgAttendeesPerMonth: number;
   monthlyAttendees: MonthlyData[];
   topAttendees: TopAttendee[];
+  topTrainers: TopTrainer[];
 }
 
 export interface MonthlyData {

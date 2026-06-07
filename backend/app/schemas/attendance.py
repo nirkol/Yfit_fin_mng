@@ -7,6 +7,7 @@ class AttendanceRecordBase(BaseModel):
     date: str  # ISO date string
     time: str  # HH:MM format
     classType: Optional[str] = "regular"
+    isNoShow: Optional[bool] = False
 
 
 class AttendanceRecordCreate(AttendanceRecordBase):
@@ -18,6 +19,11 @@ class AttendanceBulkCreate(BaseModel):
     time: str
     memberIds: List[str]
     classType: Optional[str] = "regular"
+    trainerId: str
+    trainerName: str
+    noShowMemberIds: Optional[List[str]] = []
+    originalDate: Optional[str] = None  # For editing: the original date to remove
+    originalTime: Optional[str] = None  # For editing: the original time to remove
 
 
 class AttendanceRecord(AttendanceRecordBase):
@@ -25,6 +31,9 @@ class AttendanceRecord(AttendanceRecordBase):
     memberName: str
     dayOfWeek: Optional[str] = None
     yearKey: str
+    trainerId: Optional[str] = None
+    trainerName: Optional[str] = None
+    isNoShow: Optional[bool] = False
 
     class Config:
         from_attributes = True

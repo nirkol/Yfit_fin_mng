@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useYear } from '../contexts/YearContext';
+import { useAuth } from '../contexts/AuthContext';
 import { yearService } from '../services/yearService';
-import type { AttendanceRecord } from '../types';
+import { trainerService } from '../services/trainerService';
+import type { AttendanceRecord, Trainer } from '../types';
 import { Calendar, Users, Clock, Search, ChevronLeft, ChevronRight, Edit, X } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import { validateTimeInput } from '../utils/validation';
@@ -11,14 +13,18 @@ import { getCurrentDate } from '../utils/testMode';
 interface ClassSession {
   date: string;
   time: string;
-  attendees: Array<{ memberId: string; memberName: string }>;
+  trainerId?: string;
+  trainerName?: string;
+  attendees: Array<{ memberId: string; memberName: string; isNoShow?: boolean }>;
 }
 
 export default function ClassHistory() {
   const { selectedYear } = useYear();
+  const { userRole, trainerId } = useAuth();
   const navigate = useNavigate();
   const [classes, setClasses] = useState<ClassSession[]>([]);
   const [filteredClasses, setFilteredClasses] = useState<ClassSession[]>([]);
+  const [trainers, setTrainers] = useState<Trainer[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -27,7 +33,8 @@ export default function ClassHistory() {
   const [editingClass, setEditingClass] = useState<ClassSession | null>(null);
   const [editDate, setEditDate] = useState('');
   const [editTime, setEditTime] = useState('');
-  const [editAttendees, setEditAttendees] = useState<Array<{ memberId: string; memberName: string }>>([]);
+  const [editTrainerId, setEditTrainerId] = useState('');
+  const [editAttendees, setEditAttendees] = useState<Array<{ memberId: string; memberName: string; isNoShow?: boolean }>>([]);
   const [allMembers, setAllMembers] = useState<Array<{ id: string; name: string }>>([]);
 
   // Month navigation state - default to current month (using test mode date)
@@ -40,6 +47,7 @@ export default function ClassHistory() {
   useEffect(() => {
     loadClasses();
     loadMembers();
+    loadTrainers();
   }, [selectedYear]);
 
   const loadMembers = async () => {
@@ -51,6 +59,15 @@ export default function ClassHistory() {
     }
   };
 
+  const loadTrainers = async () => {
+    try {
+      const data = await trainerService.getTrainers(true);
+      setTrainers(data);
+    } catch (error) {
+      console.error('Failed to load trainers:', error);
+    }
+  };
+
   useEffect(() => {
     // Filter classes by selected month
     const monthFiltered = classes.filter(cls => {
@@ -59,17 +76,31 @@ export default function ClassHistory() {
     });
 
     // Apply search filter on top of month filter
+    let filtered;
     if (searchTerm.trim() === '') {
-      setFilteredClasses(monthFiltered);
+      filtered = monthFiltered;
     } else {
       const term = searchTerm.toLowerCase();
-      const filtered = monthFiltered.filter(cls =>
+      filtered = monthFiltered.filter(cls =>
         cls.date.includes(term) ||
         cls.time.includes(term) ||
         cls.attendees.some(a => a.memberName.toLowerCase().includes(term))
       );
-      setFilteredClasses(filtered);
     }
+
+    // Ensure filtered classes are sorted by date/time (newest first)
+    filtered.sort((a, b) => {
+      // Parse date properly - handle both ISO format and YYYY-MM-DD
+      const dateA = a.date.includes('T') ? a.date.split('T')[0] : a.date;
+      const dateB = b.date.includes('T') ? b.date.split('T')[0] : b.date;
+
+      const dateTimeA = new Date(`${dateA}T${a.time}`);
+      const dateTimeB = new Date(`${dateB}T${b.time}`);
+
+      return dateTimeB.getTime() - dateTimeA.getTime();
+    });
+
+    setFilteredClasses(filtered);
   }, [searchTerm, classes, selectedMonth, selectedMonthYear]);
 
   const loadClasses = async () => {
@@ -88,20 +119,28 @@ export default function ClassHistory() {
             classMap.set(key, {
               date: record.date,
               time: record.time,
+              trainerId: record.trainerId,
+              trainerName: record.trainerName,
               attendees: []
             });
           }
           classMap.get(key)!.attendees.push({
             memberId: record.memberId,
-            memberName: record.memberName
+            memberName: record.memberName,
+            isNoShow: record.isNoShow || false
           });
         });
       }
 
       // Convert to array and sort by date/time (newest first)
       const classesList = Array.from(classMap.values()).sort((a, b) => {
-        const dateTimeA = new Date(`${a.date}T${a.time}`);
-        const dateTimeB = new Date(`${b.date}T${b.time}`);
+        // Parse date properly - handle both ISO format and YYYY-MM-DD
+        const dateA = a.date.includes('T') ? a.date.split('T')[0] : a.date;
+        const dateB = b.date.includes('T') ? b.date.split('T')[0] : b.date;
+
+        const dateTimeA = new Date(`${dateA}T${a.time}`);
+        const dateTimeB = new Date(`${dateB}T${b.time}`);
+
         return dateTimeB.getTime() - dateTimeA.getTime();
       });
 
@@ -140,6 +179,7 @@ export default function ClassHistory() {
     setEditingClass(cls);
     setEditDate(cls.date.split('T')[0]); // Extract date part
     setEditTime(cls.time);
+    setEditTrainerId(cls.trainerId || '');
     setEditAttendees([...cls.attendees]);
     setShowEditModal(true);
   };
@@ -149,8 +189,14 @@ export default function ClassHistory() {
     if (exists) {
       setEditAttendees(editAttendees.filter(a => a.memberId !== memberId));
     } else {
-      setEditAttendees([...editAttendees, { memberId, memberName }]);
+      setEditAttendees([...editAttendees, { memberId, memberName, isNoShow: false }]);
     }
+  };
+
+  const handleToggleNoShow = (memberId: string) => {
+    setEditAttendees(editAttendees.map(a =>
+      a.memberId === memberId ? { ...a, isNoShow: !a.isNoShow } : a
+    ));
   };
 
   const handleSaveEdit = async () => {
@@ -159,16 +205,40 @@ export default function ClassHistory() {
       return;
     }
 
+    if (!editTrainerId) {
+      alert('נא לבחור מאמן');
+      return;
+    }
+
+    const selectedTrainer = trainers.find(t => t.id === editTrainerId);
+    if (!selectedTrainer) {
+      alert('מאמן לא נמצא');
+      return;
+    }
+
     try {
       // The backend expects date in YYYY-MM-DD format and time in HH:MM format
       // The markAttendance endpoint removes old attendance for the same date/time
       // before adding new records
 
+      const noShowMemberIds = editAttendees
+        .filter(a => a.isNoShow)
+        .map(a => a.memberId);
+
+      // Send original date/time to properly remove the old class
+      const originalDate = editingClass.date.split('T')[0];
+      const originalTime = editingClass.time;
+
       await yearService.markAttendance(selectedYear, {
-        date: editDate, // Already in YYYY-MM-DD format from the date input
-        time: editTime, // Already in HH:MM format from the time input
+        date: editDate, // New date (already in YYYY-MM-DD format from the date input)
+        time: editTime, // New time (already in HH:MM format from the time input)
         memberIds: editAttendees.map(a => a.memberId),
-        classType: 'regular'
+        classType: 'regular',
+        trainerId: editTrainerId,
+        trainerName: selectedTrainer.name,
+        noShowMemberIds: noShowMemberIds,
+        originalDate: originalDate, // Original date to remove
+        originalTime: originalTime  // Original time to remove
       });
 
       alert('שינויים נשמרו בהצלחה');
@@ -206,7 +276,7 @@ export default function ClassHistory() {
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-6">
-            <h2 className="text-2xl font-bold text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>היסטוריית שיעורים</h2>
+            <h2 className="text-2xl font-bold text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>היסטוריית אימונים</h2>
             <p className="text-sm text-white" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>שנה: {selectedYear}</p>
           </div>
 
@@ -303,15 +373,23 @@ export default function ClassHistory() {
                         <Clock className="w-4 h-4" />
                         <span className="font-medium">{cls.time}</span>
                       </div>
+                      {cls.trainerName && (
+                        <div className="flex items-center gap-2 text-purple-600 bg-purple-50 px-3 py-1 rounded-lg">
+                          <Users className="w-4 h-4" />
+                          <span className="font-medium text-sm">מאמן: {cls.trainerName}</span>
+                        </div>
+                      )}
                     </div>
                     <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleEditClass(cls)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                        title="עריכת שיעור"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
+                      {(userRole === 'admin' || (userRole === 'trainer' && cls.trainerId === trainerId)) && (
+                        <button
+                          onClick={() => handleEditClass(cls)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                          title="עריכת שיעור"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                      )}
                       <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-lg">
                         <Users className="w-5 h-5 text-blue-600" />
                         <span className="font-semibold text-blue-900">{cls.attendees.length}</span>
@@ -326,9 +404,18 @@ export default function ClassHistory() {
                       <button
                         key={attendee.memberId}
                         onClick={() => navigate(`/members/${attendee.memberId}`)}
-                        className="px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm text-gray-700 transition text-right"
+                        className={`px-3 py-2 rounded-lg text-sm transition text-right relative ${
+                          attendee.isNoShow
+                            ? 'bg-orange-50 hover:bg-orange-100 text-gray-700'
+                            : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+                        }`}
                       >
                         {attendee.memberName}
+                        {attendee.isNoShow && (
+                          <span className="absolute top-1 left-1 text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full font-semibold">
+                            No-Show
+                          </span>
+                        )}
                       </button>
                     ))}
                   </div>
@@ -381,24 +468,93 @@ export default function ClassHistory() {
                 </div>
               </div>
 
+              {/* Trainer Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  מאמן *
+                </label>
+                <select
+                  value={editTrainerId}
+                  onChange={(e) => setEditTrainerId(e.target.value)}
+                  disabled={userRole === 'trainer'}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none disabled:bg-gray-100"
+                  required
+                >
+                  <option value="">בחר מאמן</option>
+                  {trainers.map((trainer) => (
+                    <option key={trainer.id} value={trainer.id}>
+                      {trainer.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Attendees Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  משתתפים ({editAttendees.length})
+                  משתתפים נבחרים ({editAttendees.length})
                 </label>
-                <div className="border border-gray-300 rounded-lg p-4 max-h-96 overflow-y-auto">
+                {editAttendees.length > 0 ? (
+                  <div className="border border-gray-300 rounded-lg p-4 mb-4 max-h-60 overflow-y-auto bg-blue-50">
+                    <div className="space-y-2">
+                      {editAttendees.map((attendee) => (
+                        <div
+                          key={attendee.memberId}
+                          className="flex items-center justify-between p-3 bg-white border-2 border-blue-200 rounded-lg"
+                        >
+                          <div className="flex items-center gap-3 flex-1">
+                            <button
+                              type="button"
+                              onClick={() => handleToggleAttendee(attendee.memberId, attendee.memberName)}
+                              className="text-red-600 hover:text-red-800 font-bold"
+                              title="הסר מהשיעור"
+                            >
+                              ✕
+                            </button>
+                            <span className={`text-sm font-medium ${attendee.isNoShow ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                              {attendee.memberName}
+                            </span>
+                            {attendee.isNoShow && (
+                              <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-semibold">
+                                No-Show
+                              </span>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleNoShow(attendee.memberId)}
+                            className={`px-3 py-1 text-xs rounded-lg transition font-medium ${
+                              attendee.isNoShow
+                                ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                            }`}
+                          >
+                            {attendee.isNoShow ? 'סמן כהגיע' : 'סמן No-Show'}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="border border-gray-300 rounded-lg p-4 mb-4 text-center text-gray-500 text-sm">
+                    לא נבחרו משתתפים
+                  </div>
+                )}
+
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  הוסף משתתפים
+                </label>
+                <div className="border border-gray-300 rounded-lg p-4 max-h-60 overflow-y-auto">
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                     {allMembers.map((member) => {
                       const isSelected = editAttendees.some(a => a.memberId === member.id);
+                      if (isSelected) return null; // Don't show already selected members
                       return (
                         <button
+                          type="button"
                           key={member.id}
                           onClick={() => handleToggleAttendee(member.id, member.name)}
-                          className={`p-3 border-2 rounded-lg text-sm transition text-right ${
-                            isSelected
-                              ? 'border-blue-600 bg-blue-50 text-blue-900'
-                              : 'border-gray-200 hover:border-gray-300'
-                          }`}
+                          className="p-3 border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 rounded-lg text-sm transition text-right"
                         >
                           {member.name}
                         </button>
